@@ -55,6 +55,16 @@ pip install -e .
 yamcs-mcp
 ```
 
+### Running Yamcs
+
+You'll need a running Yamcs instance. The easiest way is using Docker:
+
+```bash
+docker run -d --name yamcs -p 8090:8090 yamcs/quickstart
+```
+
+This will start Yamcs with a default `myproject` instance.
+
 ## Configuration
 
 The server can be configured using environment variables or a `.env` file:
@@ -90,65 +100,22 @@ Add the server to your Claude Desktop configuration:
 {
   "mcp-servers": {
     "yamcs": {
-      "command": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server/run-yamcs-mcp.py",
-      "env": {
-        "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "simulator"
-      }
-    }
-  }
-}
-```
-
-Alternative configurations:
-
-1. **Using the wrapper script** (recommended):
-```json
-{
-  "mcp-servers": {
-    "yamcs": {
-      "command": "/path/to/yamcs-mcp-server/yamcs-mcp-wrapper.sh",
-      "env": {
-        "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "simulator"
-      }
-    }
-  }
-}
-```
-
-2. **Using Python directly**:
-```json
-{
-  "mcp-servers": {
-    "yamcs": {
-      "command": "python3",
-      "args": ["/path/to/yamcs-mcp-server/run_server.py"],
-      "env": {
-        "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "simulator"
-      }
-    }
-  }
-}
-```
-
-3. **Using uv with full path**:
-```json
-{
-  "mcp-servers": {
-    "yamcs": {
-      "command": "/Users/pramirez/.local/bin/uv",
+      "command": "uv",
       "args": ["run", "yamcs-mcp"],
-      "cwd": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server",
+      "cwd": "/path/to/yamcs-mcp-server",
       "env": {
         "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "simulator"
+        "YAMCS_INSTANCE": "myproject"
       }
     }
   }
 }
 ```
+
+**Important**: 
+- Replace `/path/to/yamcs-mcp-server` with the actual path to your yamcs-mcp-server directory
+- The `cwd` parameter is required for the server to work correctly
+- If `uv` is not in your PATH, use the full path to uv (e.g., `/Users/username/.local/bin/uv`)
 
 ### Available Tools
 

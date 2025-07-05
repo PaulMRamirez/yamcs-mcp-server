@@ -52,7 +52,7 @@ Edit `.env` to match your Yamcs setup:
 
 ```bash
 YAMCS_URL=http://localhost:8090
-YAMCS_INSTANCE=simulator
+YAMCS_INSTANCE=myproject
 ```
 
 ## Running Yamcs Locally
@@ -62,10 +62,10 @@ YAMCS_INSTANCE=simulator
 The easiest way to run Yamcs for development:
 
 ```bash
-# Run Yamcs simulator
-docker run -d --name yamcs-simulator \
+# Run Yamcs with myproject instance
+docker run -d --name yamcs \
   -p 8090:8090 \
-  yamcs/simulator:latest
+  yamcs/quickstart
 ```
 
 ### Using Local Installation
@@ -291,7 +291,7 @@ Add to your Claude Desktop config:
       "cwd": "/path/to/yamcs-mcp-server",
       "env": {
         "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "simulator",
+        "YAMCS_INSTANCE": "myproject",
         "YAMCS_LOG_LEVEL": "DEBUG"
       }
     }

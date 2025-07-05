@@ -26,7 +26,7 @@ Check overall server health status.
   "server": "YamcsServer",
   "version": "0.1.0",
   "yamcs_url": "http://localhost:8090",
-  "yamcs_instance": "simulator",
+  "yamcs_instance": "myproject",
   "transport": "stdio"
 }
 ```
@@ -60,7 +60,7 @@ List parameters from the Mission Database.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 150,
   "parameters": [
     {
@@ -113,7 +113,7 @@ List commands from the Mission Database.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 50,
   "commands": [
     {
@@ -161,7 +161,7 @@ List space systems from the Mission Database.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 5,
   "space_systems": [
     {
@@ -191,7 +191,7 @@ List available processors.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 2,
   "processors": [
     {
@@ -215,7 +215,7 @@ Get processor status information.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "processor": "realtime",
   "state": "RUNNING",
   "time": "2024-01-01T12:00:00Z",
@@ -312,7 +312,7 @@ Query historical parameter data.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "start": "2024-01-01T00:00:00Z",
   "stop": "2024-01-01T01:00:00Z",
   "parameters": {
@@ -372,7 +372,7 @@ Query historical events.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "start": "2024-01-01T00:00:00Z",
   "stop": "2024-01-01T01:00:00Z",
   "count": 15,
@@ -430,7 +430,7 @@ List all data links.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 3,
   "links": [
     {
@@ -530,7 +530,7 @@ Get statistics for all links.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "statistics": {
     "total_links": 3,
     "enabled_links": 2,
@@ -562,7 +562,7 @@ List storage buckets.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 2,
   "buckets": [
     {
@@ -705,7 +705,7 @@ List Yamcs instances.
   "count": 2,
   "instances": [
     {
-      "name": "simulator",
+      "name": "myproject",
       "state": "RUNNING",
       "mission_time": "2024-01-01T12:00:00Z",
       "labels": {},
@@ -725,7 +725,7 @@ Get detailed instance information.
 **Returns:**
 ```json
 {
-  "name": "simulator",
+  "name": "myproject",
   "state": "RUNNING",
   "mission_time": "2024-01-01T12:00:00Z",
   "labels": {},
@@ -745,9 +745,9 @@ Start a Yamcs instance.
 ```json
 {
   "success": true,
-  "instance": "simulator",
+  "instance": "myproject",
   "operation": "start",
-  "message": "Instance 'simulator' started successfully"
+  "message": "Instance 'myproject' started successfully"
 }
 ```
 
@@ -761,9 +761,9 @@ Stop a Yamcs instance.
 ```json
 {
   "success": true,
-  "instance": "simulator",
+  "instance": "myproject",
   "operation": "stop",
-  "message": "Instance 'simulator' stopped successfully"
+  "message": "Instance 'myproject' stopped successfully"
 }
 ```
 
@@ -776,7 +776,7 @@ List services for an instance.
 **Returns:**
 ```json
 {
-  "instance": "simulator",
+  "instance": "myproject",
   "count": 10,
   "services": [
     {
@@ -801,7 +801,7 @@ Start a service.
 {
   "success": true,
   "service": "tm-provider",
-  "instance": "simulator",
+  "instance": "myproject",
   "operation": "start",
   "message": "Service 'tm-provider' started successfully"
 }
@@ -819,7 +819,7 @@ Stop a service.
 {
   "success": true,
   "service": "tm-provider",
-  "instance": "simulator",
+  "instance": "myproject",
   "operation": "stop",
   "message": "Service 'tm-provider' stopped successfully"
 }

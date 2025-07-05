@@ -11,7 +11,7 @@ async def main():
     # Configure the server
     # You can set these via environment variables or .env file
     os.environ["YAMCS_URL"] = "http://localhost:8090"
-    os.environ["YAMCS_INSTANCE"] = "simulator"
+    os.environ["YAMCS_INSTANCE"] = "myproject"
     os.environ["MCP_TRANSPORT"] = "stdio"
     
     # Create configuration

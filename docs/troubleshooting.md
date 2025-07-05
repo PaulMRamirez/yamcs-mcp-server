@@ -58,7 +58,7 @@
 2. **Check Docker container** (if using Docker):
    ```bash
    docker ps
-   docker logs yamcs-simulator
+   docker logs yamcs
    ```
 
 3. **Verify environment variables**:
@@ -192,10 +192,10 @@ Test raw API access:
 curl http://localhost:8090/api/instances
 
 # Get MDB info
-curl http://localhost:8090/api/mdb/simulator/parameters
+curl http://localhost:8090/api/mdb/myproject/parameters
 
 # Check processor status
-curl http://localhost:8090/api/processors/simulator/realtime
+curl http://localhost:8090/api/processors/myproject/realtime
 ```
 
 ## Performance Issues
