@@ -1,0 +1,15 @@
+{
+  "mcp-servers": {
+    "yamcs": {
+      "command": "/Users/pramirez/.local/bin/uv",
+      "args": ["run", "yamcs-mcp"],
+      "cwd": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server",
+      "env": {
+        "YAMCS_URL": "http://localhost:8090",
+        "YAMCS_INSTANCE": "simulator",
+        "PYTHONWARNINGS": "ignore",
+        "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"
+      }
+    }
+  }
+}

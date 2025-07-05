@@ -90,7 +90,7 @@ Add the server to your Claude Desktop configuration:
 {
   "mcp-servers": {
     "yamcs": {
-      "command": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server/yamcs-mcp-wrapper.sh",
+      "command": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server/run-yamcs-mcp.py",
       "env": {
         "YAMCS_URL": "http://localhost:8090",
         "YAMCS_INSTANCE": "simulator"
