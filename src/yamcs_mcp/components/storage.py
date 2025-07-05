@@ -23,10 +23,13 @@ class ObjectStorageComponent(BaseYamcsComponent):
         """
         super().__init__("ObjectStorage", client_manager, config)
 
-    def _register_tools(self) -> None:
-        """Register Object Storage-specific tools."""
+    def register_with_server(self, server: Any) -> None:
+        """Register Object Storage tools and resources with the server."""
         
-        @self.tool()
+        # Store reference to self for use in closures
+        component = self
+        
+        @server.tool()
         async def object_list_buckets(
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -39,8 +42,8 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: List of buckets with their properties
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
                     
                     buckets = []
                     for bucket in storage.list_buckets():
@@ -53,14 +56,14 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         })
                     
                     return {
-                        "instance": instance or self.config.instance,
+                        "instance": instance or component.config.instance,
                         "count": len(buckets),
                         "buckets": buckets,
                     }
             except Exception as e:
-                return self._handle_error("object_list_buckets", e)
+                return component._handle_error("object_list_buckets", e)
 
-        @self.tool()
+        @server.tool()
         async def object_list_objects(
             bucket: str,
             prefix: str | None = None,
@@ -81,15 +84,14 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: List of objects with their metadata
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
-                    bucket_obj = storage.get_bucket(bucket)
-                    
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
                     objects = []
                     prefixes = []
                     count = 0
                     
-                    listing = bucket_obj.list_objects(
+                    listing = storage.list_objects(
+                        bucket_name=bucket,
                         prefix=prefix,
                         delimiter=delimiter,
                     )
@@ -118,9 +120,9 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         "prefixes": prefixes,
                     }
             except Exception as e:
-                return self._handle_error("object_list_objects", e)
+                return component._handle_error("object_list_objects", e)
 
-        @self.tool()
+        @server.tool()
         async def object_get_object(
             bucket: str,
             object_name: str,
@@ -137,8 +139,8 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: Object metadata and content info
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
                     bucket_obj = storage.get_bucket(bucket)
                     
                     # Get object info
@@ -153,9 +155,9 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         "url": obj.url if hasattr(obj, 'url') else None,
                     }
             except Exception as e:
-                return self._handle_error("object_get_object", e)
+                return component._handle_error("object_get_object", e)
 
-        @self.tool()
+        @server.tool()
         async def object_put_object(
             bucket: str,
             object_name: str,
@@ -176,14 +178,13 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: Upload result
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
-                    bucket_obj = storage.get_bucket(bucket)
-                    
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
                     # Upload object
-                    bucket_obj.upload_object(
+                    storage.upload_object(
+                        bucket_name=bucket,
                         object_name=object_name,
-                        data=content.encode('utf-8'),
+                        file_obj=content.encode('utf-8'),
                         metadata=metadata,
                     )
                     
@@ -195,9 +196,9 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         "metadata": metadata,
                     }
             except Exception as e:
-                return self._handle_error("object_put_object", e)
+                return component._handle_error("object_put_object", e)
 
-        @self.tool()
+        @server.tool()
         async def object_delete_object(
             bucket: str,
             object_name: str,
@@ -214,12 +215,13 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: Deletion result
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
-                    bucket_obj = storage.get_bucket(bucket)
-                    
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
                     # Delete object
-                    bucket_obj.delete_object(object_name)
+                    storage.delete_object(
+                        bucket_name=bucket,
+                        object_name=object_name,
+                    )
                     
                     return {
                         "success": True,
@@ -228,9 +230,9 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         "message": f"Object '{object_name}' deleted from bucket '{bucket}'",
                     }
             except Exception as e:
-                return self._handle_error("object_delete_object", e)
+                return component._handle_error("object_delete_object", e)
 
-        @self.tool()
+        @server.tool()
         async def object_get_metadata(
             bucket: str,
             object_name: str,
@@ -247,12 +249,20 @@ class ObjectStorageComponent(BaseYamcsComponent):
                 dict: Object metadata
             """
             try:
-                async with self.client_manager.get_client() as client:
-                    storage = client.get_storage(instance or self.config.instance)
-                    bucket_obj = storage.get_bucket(bucket)
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
+                    # Get object metadata
+                    # Note: The storage client doesn't have a direct get_object method
+                    # We need to list objects and find the one we want
+                    listing = storage.list_objects(bucket_name=bucket, prefix=object_name)
+                    obj = None
+                    for o in listing.objects:
+                        if o.name == object_name:
+                            obj = o
+                            break
                     
-                    # Get object
-                    obj = bucket_obj.get_object(object_name)
+                    if not obj:
+                        raise Exception(f"Object '{object_name}' not found in bucket '{bucket}'")
                     
                     return {
                         "bucket": bucket,
@@ -265,41 +275,67 @@ class ObjectStorageComponent(BaseYamcsComponent):
                         },
                     }
             except Exception as e:
-                return self._handle_error("object_get_metadata", e)
+                return component._handle_error("object_get_metadata", e)
 
-    def _register_resources(self) -> None:
-        """Register Object Storage-specific resources."""
-        
-        @self.resource("object://buckets")
+        # Register resources
+        @server.resource("object://buckets")
         async def list_all_buckets() -> str:
             """List all available storage buckets."""
-            result = await self.object_list_buckets()
-            if "error" in result:
-                return f"Error: {result['message']}"
-            
-            lines = [f"Storage Buckets in {result['instance']} ({result['count']} total):"]
-            for bucket in result.get("buckets", []):
-                size_mb = bucket["size"] / (1024 * 1024) if bucket["size"] else 0
-                lines.append(
-                    f"  - {bucket['name']}: {bucket['object_count']} objects, "
-                    f"{size_mb:.2f} MB"
-                )
-            
-            return "\n".join(lines)
+            # Duplicate the logic instead of calling the tool
+            try:
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
+                    
+                    buckets = []
+                    for bucket in storage.list_buckets():
+                        buckets.append({
+                            "name": bucket.name,
+                            "size": bucket.size,
+                            "object_count": bucket.object_count,
+                        })
+                    
+                    lines = [f"Storage Buckets in {component.config.instance} ({len(buckets)} total):"]
+                    for bucket in buckets:
+                        size_mb = bucket["size"] / (1024 * 1024) if bucket["size"] else 0
+                        lines.append(
+                            f"  - {bucket['name']}: {bucket['object_count']} objects, "
+                            f"{size_mb:.2f} MB"
+                        )
+                    
+                    return "\n".join(lines)
+            except Exception as e:
+                return f"Error: {str(e)}"
 
-        @self.resource("object://objects/{bucket}")
+        @server.resource("object://objects/{bucket}")
         async def list_bucket_objects(bucket: str) -> str:
             """List objects in a specific bucket."""
-            result = await self.object_list_objects(bucket=bucket, limit=50)
-            if "error" in result:
-                return f"Error: {result['message']}"
-            
-            lines = [f"Objects in bucket '{bucket}' ({result['count']} total):"]
-            for obj in result.get("objects", [])[:50]:
-                size_kb = obj["size"] / 1024 if obj["size"] else 0
-                lines.append(f"  - {obj['name']} ({size_kb:.2f} KB)")
-            
-            if result["count"] > 50:
-                lines.append(f"  ... and {result['count'] - 50} more")
-            
-            return "\n".join(lines)
+            # Duplicate the logic instead of calling the tool
+            try:
+                async with component.client_manager.get_client() as client:
+                    storage = client.get_storage_client()
+                    objects = []
+                    count = 0
+                    
+                    listing = storage.list_objects(bucket_name=bucket)
+                    
+                    # Collect objects
+                    for obj in listing.objects:
+                        if count >= 50:
+                            break
+                        objects.append({
+                            "name": obj.name,
+                            "size": obj.size,
+                        })
+                        count += 1
+                    
+                    lines = [f"Objects in bucket '{bucket}' ({len(objects)} total):"]
+                    for obj in objects:
+                        size_kb = obj["size"] / 1024 if obj["size"] else 0
+                        lines.append(f"  - {obj['name']} ({size_kb:.2f} KB)")
+                    
+                    # Note: We can't get the total count without iterating through all objects
+                    # So we won't show the "and X more" message
+                    
+                    return "\n".join(lines)
+            except Exception as e:
+                return f"Error: {str(e)}"

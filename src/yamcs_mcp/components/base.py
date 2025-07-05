@@ -31,8 +31,8 @@ class BaseYamcsComponent(ABC):
         self.logger = structlog.get_logger(f"yamcs_mcp.{name.lower()}")
         
         # Store tools and resources
-        self.tools = []
-        self.resources = []
+        self.tools = {}  # Store as dict for easy access by name
+        self.resources = {}
 
     @abstractmethod
     def register_with_server(self, server: Any) -> None:

@@ -62,7 +62,7 @@ class ArchiveComponent(BaseYamcsComponent):
                         count = 0
                         
                         # Stream samples
-                        for sample in archive.stream_parameter_values(
+                        for data in archive.stream_parameter_values(
                             param,
                             start=start_time,
                             stop=stop_time,
@@ -70,13 +70,16 @@ class ArchiveComponent(BaseYamcsComponent):
                             if count >= limit:
                                 break
                             
-                            samples.append({
-                                "time": sample.time.isoformat(),
-                                "value": sample.eng_value.float_value if sample.eng_value else None,
-                                "raw_value": sample.raw_value.sint32_value if sample.raw_value else None,
-                                "status": sample.acquisition_status,
-                            })
-                            count += 1
+                            # ParameterData contains multiple parameters, get the first one
+                            if data.parameters:
+                                pval = data.parameters[0]
+                                samples.append({
+                                    "time": pval.generation_time.isoformat() if hasattr(pval, 'generation_time') and pval.generation_time else None,
+                                    "value": getattr(pval, 'eng_value', None),
+                                    "raw_value": getattr(pval, 'raw_value', None),
+                                    "status": getattr(pval, 'acquisition_status', None),
+                                })
+                                count += 1
                         
                         results[param] = {
                             "count": len(samples),
@@ -127,7 +130,7 @@ class ArchiveComponent(BaseYamcsComponent):
                     sum_val = 0
                     count = 0
                     
-                    for sample in archive.stream_parameter_values(
+                    for data in archive.stream_parameter_values(
                         parameter,
                         start=start_time,
                         stop=stop_time,
@@ -135,19 +138,23 @@ class ArchiveComponent(BaseYamcsComponent):
                         if count >= limit:
                             break
                         
-                        value = sample.eng_value.float_value if sample.eng_value else None
-                        if value is not None:
-                            min_val = min(min_val, value)
-                            max_val = max(max_val, value)
-                            sum_val += value
-                        
-                        samples.append({
-                            "time": sample.time.isoformat(),
-                            "value": value,
-                            "raw_value": sample.raw_value.sint32_value if sample.raw_value else None,
-                            "status": sample.acquisition_status,
-                        })
-                        count += 1
+                        # ParameterData contains multiple parameters, get the first one
+                        if data.parameters:
+                            pval = data.parameters[0]
+                            
+                            value = getattr(pval, 'eng_value', None)
+                            if value is not None:
+                                min_val = min(min_val, value)
+                                max_val = max(max_val, value)
+                                sum_val += value
+                            
+                            samples.append({
+                                "time": pval.generation_time.isoformat() if hasattr(pval, 'generation_time') and pval.generation_time else None,
+                                "value": value,
+                                "raw_value": getattr(pval, 'raw_value', None),
+                                "status": getattr(pval, 'acquisition_status', None),
+                            })
+                            count += 1
                     
                     # Calculate statistics
                     avg_val = sum_val / count if count > 0 else None
@@ -212,18 +219,21 @@ class ArchiveComponent(BaseYamcsComponent):
                             break
                         
                         # Apply filters
-                        if severity and event.severity.lower() != severity.lower():
+                        event_severity = getattr(event, 'severity', '')
+                        event_message = getattr(event, 'message', '')
+                        
+                        if severity and event_severity.lower() != severity.lower():
                             continue
-                        if search and search.lower() not in event.message.lower():
+                        if search and search.lower() not in event_message.lower():
                             continue
                         
                         events.append({
-                            "time": event.reception_time.isoformat(),
-                            "source": event.source,
-                            "type": event.type,
-                            "severity": event.severity,
-                            "message": event.message,
-                            "sequence_number": event.sequence_number,
+                            "time": event.reception_time.isoformat() if hasattr(event, 'reception_time') else None,
+                            "source": getattr(event, 'source', ''),
+                            "type": getattr(event, 'event_type', None),
+                            "severity": event_severity,
+                            "message": event_message,
+                            "sequence_number": getattr(event, 'sequence_number', None),
                         })
                         count += 1
                     

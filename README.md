@@ -101,8 +101,7 @@ Add the server to your Claude Desktop configuration:
   "mcp-servers": {
     "yamcs": {
       "command": "uv",
-      "args": ["run", "yamcs-mcp"],
-      "cwd": "/path/to/yamcs-mcp-server",
+      "args": ["--directory", "/path/to/yamcs-mcp-server", "run", "yamcs-mcp"],
       "env": {
         "YAMCS_URL": "http://localhost:8090",
         "YAMCS_INSTANCE": "myproject"
@@ -114,7 +113,7 @@ Add the server to your Claude Desktop configuration:
 
 **Important**: 
 - Replace `/path/to/yamcs-mcp-server` with the actual path to your yamcs-mcp-server directory
-- The `cwd` parameter is required for the server to work correctly
+- The `--directory` argument is required for uv to find the correct project
 - If `uv` is not in your PATH, use the full path to uv (e.g., `/Users/username/.local/bin/uv`)
 
 ### Available Tools
@@ -155,6 +154,36 @@ uv run ruff check .
 
 # Run type checking
 uv run mypy src/
+```
+
+### Testing
+
+Run the test suite:
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=yamcs_mcp --cov-report=html
+
+# Run specific test file
+uv run pytest tests/test_server.py
+
+# Run with verbose output
+uv run pytest -v
+```
+
+#### Testing Without a Yamcs Server
+
+The server can run in demo mode without connecting to a real Yamcs server:
+
+```bash
+# Run in demo mode (will show a warning about connection failure but continue)
+uv run python -m yamcs_mcp.server
+
+# Or use the demo script
+uv run python run_demo.py
 ```
 
 ### Project Structure

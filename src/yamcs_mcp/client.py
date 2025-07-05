@@ -117,8 +117,8 @@ class YamcsClientManager:
                 info = client.get_server_info()
                 logger.info(
                     "Yamcs server info",
-                    version=info.version,
-                    serverId=info.serverId,
+                    version=getattr(info, "version", "unknown"),
+                    id=getattr(info, "id", "unknown"),
                 )
                 return True
         except (YamcsConnectionError, YamcsAuthenticationError) as e:

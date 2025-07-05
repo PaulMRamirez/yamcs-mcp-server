@@ -94,25 +94,25 @@ class YamcsMCPServer:
             self.logger.info("Enabling Archive component")
             archive = ArchiveComponent(self.client_manager, self.config.yamcs)
             self.components.append(archive)
-            # archive.register_with_server(self.mcp)  # TODO: Update archive component
+            archive.register_with_server(self.mcp)
         
         if self.config.yamcs.enable_links:
             self.logger.info("Enabling Link Management component")
             links = LinkManagementComponent(self.client_manager, self.config.yamcs)
             self.components.append(links)
-            # links.register_with_server(self.mcp)  # TODO: Update links component
+            links.register_with_server(self.mcp)
         
         if self.config.yamcs.enable_storage:
             self.logger.info("Enabling Object Storage component")
             storage = ObjectStorageComponent(self.client_manager, self.config.yamcs)
             self.components.append(storage)
-            # storage.register_with_server(self.mcp)  # TODO: Update storage component
+            storage.register_with_server(self.mcp)
         
         if self.config.yamcs.enable_instances:
             self.logger.info("Enabling Instance Management component")
             instances = InstanceManagementComponent(self.client_manager, self.config.yamcs)
             self.components.append(instances)
-            # instances.register_with_server(self.mcp)  # TODO: Update instances component
+            instances.register_with_server(self.mcp)
         
         self.logger.info(f"Initialized {len(self.components)} components")
 
@@ -166,18 +166,19 @@ class YamcsMCPServer:
         
         # Test Yamcs connection before starting
         if not await self.client_manager.test_connection():
-            self.logger.error(
-                "Failed to connect to Yamcs server",
+            self.logger.warning(
+                "Failed to connect to Yamcs server - running in demo mode",
                 url=self.config.yamcs.url,
             )
-            sys.exit(1)
+            # Continue in demo mode without exiting
         
         # Run server based on transport
         if self.config.mcp.transport == "stdio":
-            await self.mcp.run()
+            # For stdio, we need to run_async directly since we're already in an event loop
+            await self.mcp.run_async()
         else:
             # HTTP/SSE transport
-            await self.mcp.run(
+            await self.mcp.run_async(
                 transport=self.config.mcp.transport,
                 host=self.config.mcp.host,
                 port=self.config.mcp.port,
@@ -196,8 +197,17 @@ def main() -> None:
         # Create and run server
         server = YamcsMCPServer(config)
         
-        # Run async event loop
-        asyncio.run(server.run())
+        # Check if we're already in an event loop
+        try:
+            loop = asyncio.get_running_loop()
+            # If we're here, we're already in a loop (e.g., Jupyter)
+            console.print("[yellow]Already running in an event loop[/yellow]")
+            # Create a task for the server
+            task = loop.create_task(server.run())
+            loop.run_until_complete(task)
+        except RuntimeError:
+            # No event loop running, create one
+            asyncio.run(server.run())
         
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped by user[/yellow]")

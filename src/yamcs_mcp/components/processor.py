@@ -26,6 +26,9 @@ class ProcessorComponent(BaseYamcsComponent):
     def register_with_server(self, server: Any) -> None:
         """Register Processor tools and resources with the server."""
         
+        # Store reference to self for use in closures
+        component = self
+        
         @server.tool()
         async def processor_list_processors(
             instance: str | None = None,
@@ -39,9 +42,9 @@ class ProcessorComponent(BaseYamcsComponent):
                 dict: List of processors with their status
             """
             try:
-                async with self.client_manager.get_client() as client:
+                async with component.client_manager.get_client() as client:
                     processors = []
-                    for proc in client.list_processors(instance or self.config.instance):
+                    for proc in client.list_processors(instance or component.config.instance):
                         processors.append({
                             "name": proc.name,
                             "state": proc.state,
@@ -51,12 +54,12 @@ class ProcessorComponent(BaseYamcsComponent):
                         })
                     
                     return {
-                        "instance": instance or self.config.instance,
+                        "instance": instance or component.config.instance,
                         "count": len(processors),
                         "processors": processors,
                     }
             except Exception as e:
-                return self._handle_error("processor_list_processors", e)
+                return component._handle_error("processor_list_processors", e)
 
         @server.tool()
         async def processor_get_status(
@@ -73,14 +76,14 @@ class ProcessorComponent(BaseYamcsComponent):
                 dict: Processor status information
             """
             try:
-                async with self.client_manager.get_client() as client:
+                async with component.client_manager.get_client() as client:
                     proc = client.get_processor(
-                        instance=instance or self.config.instance,
+                        instance=instance or component.config.instance,
                         processor=processor,
                     )
                     
                     return {
-                        "instance": instance or self.config.instance,
+                        "instance": instance or component.config.instance,
                         "processor": processor,
                         "state": proc.state,
                         "time": proc.time,
@@ -91,7 +94,7 @@ class ProcessorComponent(BaseYamcsComponent):
                         },
                     }
             except Exception as e:
-                return self._handle_error("processor_get_status", e)
+                return component._handle_error("processor_get_status", e)
 
         @server.tool()
         async def processor_issue_command(
@@ -114,9 +117,9 @@ class ProcessorComponent(BaseYamcsComponent):
                 dict: Command execution result
             """
             try:
-                async with self.client_manager.get_client() as client:
+                async with component.client_manager.get_client() as client:
                     proc = client.get_processor(
-                        instance=instance or self.config.instance,
+                        instance=instance or component.config.instance,
                         processor=processor,
                     )
                     
@@ -144,7 +147,7 @@ class ProcessorComponent(BaseYamcsComponent):
                             "sequence_number": cmd_result.sequence_number,
                         }
             except Exception as e:
-                return self._handle_error("processor_issue_command", e)
+                return component._handle_error("processor_issue_command", e)
 
         @server.tool()
         async def processor_get_parameter_value(
@@ -163,9 +166,9 @@ class ProcessorComponent(BaseYamcsComponent):
                 dict: Current parameter value and metadata
             """
             try:
-                async with self.client_manager.get_client() as client:
+                async with component.client_manager.get_client() as client:
                     proc = client.get_processor(
-                        instance=instance or self.config.instance,
+                        instance=instance or component.config.instance,
                         processor=processor,
                     )
                     
@@ -175,16 +178,16 @@ class ProcessorComponent(BaseYamcsComponent):
                     return {
                         "parameter": parameter,
                         "value": {
-                            "eng_value": pval.eng_value.float_value if pval.eng_value else None,
-                            "raw_value": pval.raw_value.sint32_value if pval.raw_value else None,
-                            "generation_time": pval.generation_time,
-                            "acquisition_time": pval.acquisition_time,
-                            "validity": pval.acquisition_status,
-                            "monitoring_result": pval.monitoring_result,
+                            "eng_value": pval.eng_value if hasattr(pval, 'eng_value') else None,
+                            "raw_value": pval.raw_value if hasattr(pval, 'raw_value') else None,
+                            "generation_time": pval.generation_time if hasattr(pval, 'generation_time') else None,
+                            "acquisition_time": pval.acquisition_time if hasattr(pval, 'acquisition_time') else None,
+                            "validity": pval.acquisition_status if hasattr(pval, 'acquisition_status') else None,
+                            "monitoring_result": pval.monitoring_result if hasattr(pval, 'monitoring_result') else None,
                         },
                     }
             except Exception as e:
-                return self._handle_error("processor_get_parameter_value", e)
+                return component._handle_error("processor_get_parameter_value", e)
 
         @server.tool()
         async def processor_set_parameter_value(
@@ -205,9 +208,9 @@ class ProcessorComponent(BaseYamcsComponent):
                 dict: Operation result
             """
             try:
-                async with self.client_manager.get_client() as client:
+                async with component.client_manager.get_client() as client:
                     proc = client.get_processor(
-                        instance=instance or self.config.instance,
+                        instance=instance or component.config.instance,
                         processor=processor,
                     )
                     
@@ -221,31 +224,36 @@ class ProcessorComponent(BaseYamcsComponent):
                         "processor": processor,
                     }
             except Exception as e:
-                return self._handle_error("processor_set_parameter_value", e)
+                return component._handle_error("processor_set_parameter_value", e)
 
         # Register resources
         @server.resource("processor://status/{processor}")
         async def get_processor_status(processor: str = "realtime") -> str:
             """Get real-time processor status."""
-            result = await self.processor_get_status(processor=processor)
-            if "error" in result:
-                return f"Error: {result['message']}"
-            
-            lines = [
-                f"Processor: {result['processor']}",
-                f"Instance: {result['instance']}",
-                f"State: {result['state']}",
-                f"Time: {result['time']}",
-                f"Mission Time: {result['mission_time']}",
-            ]
-            
-            if "statistics" in result:
-                stats = result["statistics"]
-                lines.extend([
-                    "",
-                    "Statistics:",
-                    f"  TM Packets: {stats.get('tm_packets', 0)}/s",
-                    f"  Parameters: {stats.get('parameters', 0)}/s",
-                ])
-            
-            return "\n".join(lines)
+            # Duplicate the logic instead of calling the tool
+            try:
+                async with component.client_manager.get_client() as client:
+                    proc = client.get_processor(
+                        instance=component.config.instance,
+                        processor=processor,
+                    )
+                    
+                    lines = [
+                        f"Processor: {processor}",
+                        f"Instance: {component.config.instance}",
+                        f"State: {proc.state}",
+                        f"Time: {proc.time}",
+                        f"Mission Time: {proc.mission_time}",
+                    ]
+                    
+                    if hasattr(proc, 'tm_stats'):
+                        lines.extend([
+                            "",
+                            "Statistics:",
+                            f"  TM Packets: {proc.tm_stats.packet_rate if hasattr(proc.tm_stats, 'packet_rate') else 0}/s",
+                            f"  Parameters: {proc.tm_stats.data_rate if hasattr(proc.tm_stats, 'data_rate') else 0}/s",
+                        ])
+                    
+                    return "\n".join(lines)
+            except Exception as e:
+                return f"Error: {str(e)}"
