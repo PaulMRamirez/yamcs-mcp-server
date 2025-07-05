@@ -24,10 +24,10 @@ class ArchiveComponent(BaseYamcsComponent):
         """
         super().__init__("Archive", client_manager, config)
 
-    def _register_tools(self) -> None:
-        """Register Archive-specific tools."""
+    def register_with_server(self, server: Any) -> None:
+        """Register Archive tools and resources with the server."""
         
-        @self.tool()
+        @server.tool()
         async def archive_query_parameters(
             parameters: list[str],
             start: str,
@@ -92,7 +92,7 @@ class ArchiveComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("archive_query_parameters", e)
 
-        @self.tool()
+        @server.tool()
         async def archive_get_parameter_samples(
             parameter: str,
             start: str,
@@ -167,7 +167,7 @@ class ArchiveComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("archive_get_parameter_samples", e)
 
-        @self.tool()
+        @server.tool()
         async def archive_query_events(
             start: str,
             stop: str,
@@ -237,7 +237,7 @@ class ArchiveComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("archive_query_events", e)
 
-        @self.tool()
+        @server.tool()
         async def archive_get_completeness(
             parameter: str,
             start: str,
@@ -275,10 +275,8 @@ class ArchiveComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("archive_get_completeness", e)
 
-    def _register_resources(self) -> None:
-        """Register Archive-specific resources."""
-        
-        @self.resource("archive://parameters/{timerange}")
+        # Register resources
+        @server.resource("archive://parameters/{timerange}")
         async def get_parameter_archive(timerange: str) -> str:
             """Get parameter archive summary for a time range."""
             # Parse timerange (format: YYYY-MM-DD/YYYY-MM-DD)
@@ -288,7 +286,7 @@ class ArchiveComponent(BaseYamcsComponent):
             except ValueError:
                 return "Invalid timerange format. Use YYYY-MM-DD/YYYY-MM-DD"
 
-        @self.resource("archive://events/{timerange}")
+        @server.resource("archive://events/{timerange}")
         async def get_event_archive(timerange: str) -> str:
             """Get event archive summary for a time range."""
             # Parse timerange

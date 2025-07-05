@@ -4,13 +4,12 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import structlog
-from fastmcp import FastMCP
 
 from ..client import YamcsClientManager
 from ..config import YamcsConfig
 
 
-class BaseYamcsComponent(FastMCP, ABC):
+class BaseYamcsComponent(ABC):
     """Base component with common functionality for all Yamcs components."""
 
     def __init__(
@@ -26,32 +25,22 @@ class BaseYamcsComponent(FastMCP, ABC):
             client_manager: Yamcs client manager
             config: Yamcs configuration
         """
-        super().__init__(name=f"Yamcs{name}")
+        self.name = f"Yamcs{name}"
         self.client_manager = client_manager
         self.config = config
         self.logger = structlog.get_logger(f"yamcs_mcp.{name.lower()}")
         
-        # Initialize component
-        self._setup_component()
+        # Store tools and resources
+        self.tools = []
+        self.resources = []
 
-    def _setup_component(self) -> None:
-        """Set up the component by registering tools and resources."""
-        self.logger.info(f"Setting up {self.name} component")
+    @abstractmethod
+    def register_with_server(self, server: Any) -> None:
+        """Register this component's tools and resources with a server.
         
-        # Register tools and resources
-        # Note: We can't use async methods in __init__, so we'll need
-        # to register them synchronously
-        self._register_tools()
-        self._register_resources()
-
-    @abstractmethod
-    def _register_tools(self) -> None:
-        """Register component-specific tools."""
-        pass
-
-    @abstractmethod
-    def _register_resources(self) -> None:
-        """Register component-specific resources."""
+        Args:
+            server: FastMCP server instance
+        """
         pass
 
     async def health_check(self) -> dict[str, Any]:

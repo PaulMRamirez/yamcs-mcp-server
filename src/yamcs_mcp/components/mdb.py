@@ -23,10 +23,10 @@ class MDBComponent(BaseYamcsComponent):
         """
         super().__init__("MDB", client_manager, config)
 
-    def _register_tools(self) -> None:
-        """Register MDB-specific tools."""
+    def register_with_server(self, server: Any) -> None:
+        """Register MDB tools and resources with the server."""
         
-        @self.tool()
+        @server.tool()
         async def mdb_list_parameters(
             instance: str | None = None,
             system: str | None = None,
@@ -71,7 +71,7 @@ class MDBComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("mdb_list_parameters", e)
 
-        @self.tool()
+        @server.tool()
         async def mdb_get_parameter(
             parameter: str,
             instance: str | None = None,
@@ -107,7 +107,7 @@ class MDBComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("mdb_get_parameter", e)
 
-        @self.tool()
+        @server.tool()
         async def mdb_list_commands(
             instance: str | None = None,
             system: str | None = None,
@@ -151,7 +151,7 @@ class MDBComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("mdb_list_commands", e)
 
-        @self.tool()
+        @server.tool()
         async def mdb_get_command(
             command: str,
             instance: str | None = None,
@@ -194,7 +194,7 @@ class MDBComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("mdb_get_command", e)
 
-        @self.tool()
+        @server.tool()
         async def mdb_list_space_systems(
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -227,10 +227,8 @@ class MDBComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("mdb_list_space_systems", e)
 
-    def _register_resources(self) -> None:
-        """Register MDB-specific resources."""
-        
-        @self.resource("mdb://parameters")
+        # Register resources
+        @server.resource("mdb://parameters")
         async def list_all_parameters() -> str:
             """List all parameters in the MDB."""
             result = await self.mdb_list_parameters()
@@ -246,7 +244,7 @@ class MDBComponent(BaseYamcsComponent):
             
             return "\n".join(lines)
 
-        @self.resource("mdb://commands")
+        @server.resource("mdb://commands")
         async def list_all_commands() -> str:
             """List all commands in the MDB."""
             result = await self.mdb_list_commands()

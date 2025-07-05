@@ -23,10 +23,10 @@ class ProcessorComponent(BaseYamcsComponent):
         """
         super().__init__("Processor", client_manager, config)
 
-    def _register_tools(self) -> None:
-        """Register Processor-specific tools."""
+    def register_with_server(self, server: Any) -> None:
+        """Register Processor tools and resources with the server."""
         
-        @self.tool()
+        @server.tool()
         async def processor_list_processors(
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -58,7 +58,7 @@ class ProcessorComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("processor_list_processors", e)
 
-        @self.tool()
+        @server.tool()
         async def processor_get_status(
             processor: str = "realtime",
             instance: str | None = None,
@@ -93,7 +93,7 @@ class ProcessorComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("processor_get_status", e)
 
-        @self.tool()
+        @server.tool()
         async def processor_issue_command(
             command: str,
             args: dict[str, Any] | None = None,
@@ -146,7 +146,7 @@ class ProcessorComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("processor_issue_command", e)
 
-        @self.tool()
+        @server.tool()
         async def processor_get_parameter_value(
             parameter: str,
             processor: str = "realtime",
@@ -186,7 +186,7 @@ class ProcessorComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("processor_get_parameter_value", e)
 
-        @self.tool()
+        @server.tool()
         async def processor_set_parameter_value(
             parameter: str,
             value: float | int | str | bool,
@@ -223,10 +223,8 @@ class ProcessorComponent(BaseYamcsComponent):
             except Exception as e:
                 return self._handle_error("processor_set_parameter_value", e)
 
-    def _register_resources(self) -> None:
-        """Register Processor-specific resources."""
-        
-        @self.resource("processor://status/{processor}")
+        # Register resources
+        @server.resource("processor://status/{processor}")
         async def get_processor_status(processor: str = "realtime") -> str:
             """Get real-time processor status."""
             result = await self.processor_get_status(processor=processor)
