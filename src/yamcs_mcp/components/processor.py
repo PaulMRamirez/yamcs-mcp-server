@@ -25,10 +25,10 @@ class ProcessorComponent(BaseYamcsComponent):
 
     def register_with_server(self, server: Any) -> None:
         """Register Processor tools and resources with the server."""
-        
+
         # Store reference to self for use in closures
         component = self
-        
+
         @server.tool()
         async def processor_list_processors(
             instance: str | None = None,
@@ -44,7 +44,9 @@ class ProcessorComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     processors = []
-                    for proc in client.list_processors(instance or component.config.instance):
+                    for proc in client.list_processors(
+                        instance or component.config.instance
+                    ):
                         processors.append({
                             "name": proc.name,
                             "state": proc.state,
@@ -52,7 +54,7 @@ class ProcessorComponent(BaseYamcsComponent):
                             "time": proc.time,
                             "replay": proc.replay,
                         })
-                    
+
                     return {
                         "instance": instance or component.config.instance,
                         "count": len(processors),
@@ -81,7 +83,7 @@ class ProcessorComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         processor=processor,
                     )
-                    
+
                     return {
                         "instance": instance or component.config.instance,
                         "processor": processor,
@@ -89,8 +91,16 @@ class ProcessorComponent(BaseYamcsComponent):
                         "time": proc.time,
                         "mission_time": proc.mission_time,
                         "statistics": {
-                            "tm_packets": proc.tm_stats.packet_rate if hasattr(proc, 'tm_stats') else 0,
-                            "parameters": proc.tm_stats.data_rate if hasattr(proc, 'tm_stats') else 0,
+                            "tm_packets": (
+                                proc.tm_stats.packet_rate
+                                if hasattr(proc, 'tm_stats')
+                                else 0
+                            ),
+                            "parameters": (
+                                proc.tm_stats.data_rate
+                                if hasattr(proc, 'tm_stats')
+                                else 0
+                            ),
                         },
                     }
             except Exception as e:
@@ -122,7 +132,7 @@ class ProcessorComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         processor=processor,
                     )
-                    
+
                     if dry_run:
                         # Validate command
                         validation = proc.validate_command(command, args=args)
@@ -137,7 +147,7 @@ class ProcessorComponent(BaseYamcsComponent):
                     else:
                         # Issue command
                         cmd_result = proc.issue_command(command, args=args)
-                        
+
                         return {
                             "success": True,
                             "command_id": cmd_result.id,
@@ -171,19 +181,39 @@ class ProcessorComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         processor=processor,
                     )
-                    
+
                     # Get parameter value
                     pval = proc.get_parameter_value(parameter)
-                    
+
                     return {
                         "parameter": parameter,
                         "value": {
-                            "eng_value": pval.eng_value if hasattr(pval, 'eng_value') else None,
-                            "raw_value": pval.raw_value if hasattr(pval, 'raw_value') else None,
-                            "generation_time": pval.generation_time if hasattr(pval, 'generation_time') else None,
-                            "acquisition_time": pval.acquisition_time if hasattr(pval, 'acquisition_time') else None,
-                            "validity": pval.acquisition_status if hasattr(pval, 'acquisition_status') else None,
-                            "monitoring_result": pval.monitoring_result if hasattr(pval, 'monitoring_result') else None,
+                            "eng_value": (
+                                pval.eng_value if hasattr(pval, 'eng_value') else None
+                            ),
+                            "raw_value": (
+                                pval.raw_value if hasattr(pval, 'raw_value') else None
+                            ),
+                            "generation_time": (
+                                pval.generation_time
+                                if hasattr(pval, 'generation_time')
+                                else None
+                            ),
+                            "acquisition_time": (
+                                pval.acquisition_time
+                                if hasattr(pval, 'acquisition_time')
+                                else None
+                            ),
+                            "validity": (
+                                pval.acquisition_status
+                                if hasattr(pval, 'acquisition_status')
+                                else None
+                            ),
+                            "monitoring_result": (
+                                pval.monitoring_result
+                                if hasattr(pval, 'monitoring_result')
+                                else None
+                            ),
                         },
                     }
             except Exception as e:
@@ -213,10 +243,10 @@ class ProcessorComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         processor=processor,
                     )
-                    
+
                     # Set parameter value
                     proc.set_parameter_value(parameter, value)
-                    
+
                     return {
                         "success": True,
                         "parameter": parameter,
@@ -237,7 +267,7 @@ class ProcessorComponent(BaseYamcsComponent):
                         instance=component.config.instance,
                         processor=processor,
                     )
-                    
+
                     lines = [
                         f"Processor: {processor}",
                         f"Instance: {component.config.instance}",
@@ -245,15 +275,25 @@ class ProcessorComponent(BaseYamcsComponent):
                         f"Time: {proc.time}",
                         f"Mission Time: {proc.mission_time}",
                     ]
-                    
+
                     if hasattr(proc, 'tm_stats'):
+                        packet_rate = (
+                            proc.tm_stats.packet_rate
+                            if hasattr(proc.tm_stats, 'packet_rate')
+                            else 0
+                        )
+                        data_rate = (
+                            proc.tm_stats.data_rate
+                            if hasattr(proc.tm_stats, 'data_rate')
+                            else 0
+                        )
                         lines.extend([
                             "",
                             "Statistics:",
-                            f"  TM Packets: {proc.tm_stats.packet_rate if hasattr(proc.tm_stats, 'packet_rate') else 0}/s",
-                            f"  Parameters: {proc.tm_stats.data_rate if hasattr(proc.tm_stats, 'data_rate') else 0}/s",
+                            f"  TM Packets: {packet_rate}/s",
+                            f"  Parameters: {data_rate}/s",
                         ])
-                    
+
                     return "\n".join(lines)
             except Exception as e:
-                return f"Error: {str(e)}"
+                return f"Error: {e!s}"

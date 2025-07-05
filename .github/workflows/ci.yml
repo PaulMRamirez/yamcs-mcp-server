@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       yamcs:
-        image: yamcs/quickstart:latest
+        image: yamcs/example-simulation:latest
         ports:
           - 8090:8090
         options: >-

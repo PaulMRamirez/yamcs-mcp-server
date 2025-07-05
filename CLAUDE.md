@@ -121,9 +121,9 @@ class ComponentName(BaseYamcsComponent):
 
 ### Environment Variables
 
-Default instance name is `myproject` (not `simulator`). Key variables:
+Default instance name is `simulator` when using the example-simulation Docker image. Key variables:
 - `YAMCS_URL` - Yamcs server URL (default: http://localhost:8090)
-- `YAMCS_INSTANCE` - Yamcs instance name (default: myproject)
+- `YAMCS_INSTANCE` - Yamcs instance name (default: simulator)
 - `YAMCS_ENABLE_*` - Component toggles (all true by default)
 - `MCP_TRANSPORT` - Transport type: stdio, http, or sse (default: stdio)
 
@@ -166,10 +166,10 @@ Uses uv's `--directory` flag for proper project resolution:
 
 Quick Yamcs setup for testing:
 ```bash
-docker run -d --name yamcs -p 8090:8090 yamcs/quickstart
+docker run -d --name yamcs -p 8090:8090 yamcs/example-simulation
 ```
 
-This starts Yamcs with a `myproject` instance on port 8090.
+This starts Yamcs with a `simulator` instance on port 8090 that includes example telemetry data.
 
 ## Memories
 

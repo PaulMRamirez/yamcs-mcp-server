@@ -2,15 +2,18 @@
 
 import asyncio
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastmcp import FastMCP
+
+if TYPE_CHECKING:
+    from fastmcp import FastMCP as FastMCPType
 from rich.console import Console
-from rich.logging import RichHandler
 
 from .client import YamcsClientManager
 from .components.archive import ArchiveComponent
+from .components.base import BaseYamcsComponent
 from .components.instances import InstanceManagementComponent
 from .components.links import LinkManagementComponent
 from .components.mdb import MDBComponent
@@ -55,70 +58,70 @@ class YamcsMCPServer:
         self.config = config or Config.from_env()
         setup_logging(self.config.yamcs.log_level)
         self.logger = structlog.get_logger(__name__)
-        
+
         # Initialize client manager
         self.client_manager = YamcsClientManager(self.config.yamcs)
-        
+
         # Initialize main MCP server
-        self.mcp = FastMCP(
+        self.mcp: Any = FastMCP(
             name=self.config.yamcs.server_name,
-            version="0.1.0",
+            version="0.0.1-beta",
         )
-        
+
         # Initialize and compose components
         self._initialize_components()
-        
+
         # Register server-wide tools
         self._register_server_tools()
 
     def _initialize_components(self) -> None:
         """Initialize and compose all enabled components."""
         self.logger.info("Initializing Yamcs MCP components")
-        
+
         # Store components for reference
-        self.components = []
-        
+        self.components: list[BaseYamcsComponent] = []
+
         if self.config.yamcs.enable_mdb:
             self.logger.info("Enabling MDB component")
             mdb = MDBComponent(self.client_manager, self.config.yamcs)
             self.components.append(mdb)
             mdb.register_with_server(self.mcp)
-        
+
         if self.config.yamcs.enable_processor:
             self.logger.info("Enabling Processor component")
             processor = ProcessorComponent(self.client_manager, self.config.yamcs)
             self.components.append(processor)
             processor.register_with_server(self.mcp)
-        
+
         if self.config.yamcs.enable_archive:
             self.logger.info("Enabling Archive component")
             archive = ArchiveComponent(self.client_manager, self.config.yamcs)
             self.components.append(archive)
             archive.register_with_server(self.mcp)
-        
+
         if self.config.yamcs.enable_links:
             self.logger.info("Enabling Link Management component")
             links = LinkManagementComponent(self.client_manager, self.config.yamcs)
             self.components.append(links)
             links.register_with_server(self.mcp)
-        
+
         if self.config.yamcs.enable_storage:
             self.logger.info("Enabling Object Storage component")
             storage = ObjectStorageComponent(self.client_manager, self.config.yamcs)
             self.components.append(storage)
             storage.register_with_server(self.mcp)
-        
+
         if self.config.yamcs.enable_instances:
             self.logger.info("Enabling Instance Management component")
             instances = InstanceManagementComponent(self.client_manager, self.config.yamcs)
             self.components.append(instances)
             instances.register_with_server(self.mcp)
-        
+
         self.logger.info(f"Initialized {len(self.components)} components")
 
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""
-        
+
         @self.mcp.tool()
         async def health_check() -> dict[str, Any]:
             """Check overall server health.
@@ -129,12 +132,12 @@ class YamcsMCPServer:
             return {
                 "status": "healthy",
                 "server": self.config.yamcs.server_name,
-                "version": "0.1.0",
+                "version": "0.0.1-beta",
                 "yamcs_url": self.config.yamcs.url,
                 "yamcs_instance": self.config.yamcs.instance,
                 "transport": self.config.mcp.transport,
             }
-        
+
         @self.mcp.tool()
         async def test_connection() -> dict[str, Any]:
             """Test connection to Yamcs server.
@@ -163,7 +166,7 @@ class YamcsMCPServer:
             transport=self.config.mcp.transport,
             yamcs_url=self.config.yamcs.url,
         )
-        
+
         # Test Yamcs connection before starting
         if not await self.client_manager.test_connection():
             self.logger.warning(
@@ -171,7 +174,7 @@ class YamcsMCPServer:
                 url=self.config.yamcs.url,
             )
             # Continue in demo mode without exiting
-        
+
         # Run server based on transport
         if self.config.mcp.transport == "stdio":
             # For stdio, we need to run_async directly since we're already in an event loop
@@ -189,14 +192,14 @@ def main() -> None:
     """Main entry point for the Yamcs MCP Server."""
     # Create console for rich output
     console = Console()
-    
+
     try:
         # Load configuration
         config = Config.from_env()
-        
+
         # Create and run server
         server = YamcsMCPServer(config)
-        
+
         # Check if we're already in an event loop
         try:
             loop = asyncio.get_running_loop()
@@ -208,7 +211,7 @@ def main() -> None:
         except RuntimeError:
             # No event loop running, create one
             asyncio.run(server.run())
-        
+
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped by user[/yellow]")
         sys.exit(0)

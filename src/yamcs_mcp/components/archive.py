@@ -26,7 +26,7 @@ class ArchiveComponent(BaseYamcsComponent):
 
     def register_with_server(self, server: Any) -> None:
         """Register Archive tools and resources with the server."""
-        
+
         @server.tool()
         async def archive_query_parameters(
             parameters: list[str],
@@ -50,17 +50,17 @@ class ArchiveComponent(BaseYamcsComponent):
             try:
                 async with self.client_manager.get_client() as client:
                     archive = client.get_archive(instance or self.config.instance)
-                    
+
                     # Parse times
                     start_time = datetime.fromisoformat(start.replace('Z', '+00:00'))
                     stop_time = datetime.fromisoformat(stop.replace('Z', '+00:00'))
-                    
+
                     # Query each parameter
                     results = {}
                     for param in parameters:
                         samples = []
                         count = 0
-                        
+
                         # Stream samples
                         for data in archive.stream_parameter_values(
                             param,
@@ -69,23 +69,29 @@ class ArchiveComponent(BaseYamcsComponent):
                         ):
                             if count >= limit:
                                 break
-                            
-                            # ParameterData contains multiple parameters, get the first one
+
+                            # ParameterData contains multiple parameters
+                            # Get the first one
                             if data.parameters:
                                 pval = data.parameters[0]
                                 samples.append({
-                                    "time": pval.generation_time.isoformat() if hasattr(pval, 'generation_time') and pval.generation_time else None,
+                                    "time": (
+                                        pval.generation_time.isoformat()
+                                        if hasattr(pval, 'generation_time')
+                                        and pval.generation_time
+                                        else None
+                                    ),
                                     "value": getattr(pval, 'eng_value', None),
                                     "raw_value": getattr(pval, 'raw_value', None),
                                     "status": getattr(pval, 'acquisition_status', None),
                                 })
                                 count += 1
-                        
+
                         results[param] = {
                             "count": len(samples),
                             "samples": samples,
                         }
-                    
+
                     return {
                         "instance": instance or self.config.instance,
                         "start": start,
@@ -118,18 +124,18 @@ class ArchiveComponent(BaseYamcsComponent):
             try:
                 async with self.client_manager.get_client() as client:
                     archive = client.get_archive(instance or self.config.instance)
-                    
+
                     # Parse times
                     start_time = datetime.fromisoformat(start.replace('Z', '+00:00'))
                     stop_time = datetime.fromisoformat(stop.replace('Z', '+00:00'))
-                    
+
                     # Get samples
                     samples = []
                     min_val = float('inf')
                     max_val = float('-inf')
                     sum_val = 0
                     count = 0
-                    
+
                     for data in archive.stream_parameter_values(
                         parameter,
                         start=start_time,
@@ -137,28 +143,34 @@ class ArchiveComponent(BaseYamcsComponent):
                     ):
                         if count >= limit:
                             break
-                        
-                        # ParameterData contains multiple parameters, get the first one
+
+                        # ParameterData contains multiple parameters
+                        # Get the first one
                         if data.parameters:
                             pval = data.parameters[0]
-                            
+
                             value = getattr(pval, 'eng_value', None)
                             if value is not None:
                                 min_val = min(min_val, value)
                                 max_val = max(max_val, value)
                                 sum_val += value
-                            
+
                             samples.append({
-                                "time": pval.generation_time.isoformat() if hasattr(pval, 'generation_time') and pval.generation_time else None,
+                                "time": (
+                                    pval.generation_time.isoformat()
+                                    if hasattr(pval, 'generation_time')
+                                    and pval.generation_time
+                                    else None
+                                ),
                                 "value": value,
                                 "raw_value": getattr(pval, 'raw_value', None),
                                 "status": getattr(pval, 'acquisition_status', None),
                             })
                             count += 1
-                    
+
                     # Calculate statistics
                     avg_val = sum_val / count if count > 0 else None
-                    
+
                     return {
                         "parameter": parameter,
                         "start": start,
@@ -201,15 +213,15 @@ class ArchiveComponent(BaseYamcsComponent):
             try:
                 async with self.client_manager.get_client() as client:
                     archive = client.get_archive(instance or self.config.instance)
-                    
+
                     # Parse times
                     start_time = datetime.fromisoformat(start.replace('Z', '+00:00'))
                     stop_time = datetime.fromisoformat(stop.replace('Z', '+00:00'))
-                    
+
                     # Query events
                     events = []
                     count = 0
-                    
+
                     for event in archive.list_events(
                         start=start_time,
                         stop=stop_time,
@@ -217,16 +229,16 @@ class ArchiveComponent(BaseYamcsComponent):
                     ):
                         if count >= limit:
                             break
-                        
+
                         # Apply filters
                         event_severity = getattr(event, 'severity', '')
                         event_message = getattr(event, 'message', '')
-                        
+
                         if severity and event_severity.lower() != severity.lower():
                             continue
                         if search and search.lower() not in event_message.lower():
                             continue
-                        
+
                         events.append({
                             "time": event.reception_time.isoformat() if hasattr(event, 'reception_time') else None,
                             "source": getattr(event, 'source', ''),
@@ -236,7 +248,7 @@ class ArchiveComponent(BaseYamcsComponent):
                             "sequence_number": getattr(event, 'sequence_number', None),
                         })
                         count += 1
-                    
+
                     return {
                         "instance": instance or self.config.instance,
                         "start": start,
@@ -267,11 +279,9 @@ class ArchiveComponent(BaseYamcsComponent):
             """
             try:
                 async with self.client_manager.get_client() as client:
-                    archive = client.get_archive(instance or self.config.instance)
-                    
                     # This is a simplified implementation
                     # Real implementation would calculate gaps and coverage
-                    
+
                     return {
                         "parameter": parameter,
                         "start": start,

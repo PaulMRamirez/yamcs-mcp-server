@@ -18,7 +18,7 @@ class YamcsConfig(BaseSettings):
 
     # Connection settings
     url: str = Field(default="http://localhost:8090", description="Yamcs server URL")
-    instance: str = Field(default="myproject", description="Default Yamcs instance")
+    instance: str = Field(default="simulator", description="Default Yamcs instance")
 
     # Authentication (optional)
     username: str | None = None

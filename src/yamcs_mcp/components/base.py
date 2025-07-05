@@ -29,10 +29,10 @@ class BaseYamcsComponent(ABC):
         self.client_manager = client_manager
         self.config = config
         self.logger = structlog.get_logger(f"yamcs_mcp.{name.lower()}")
-        
+
         # Store tools and resources
-        self.tools = {}  # Store as dict for easy access by name
-        self.resources = {}
+        self.tools: dict[str, Any] = {}  # Store as dict for easy access by name
+        self.resources: dict[str, Any] = {}
 
     @abstractmethod
     def register_with_server(self, server: Any) -> None:
@@ -52,7 +52,7 @@ class BaseYamcsComponent(ABC):
         try:
             # Test Yamcs connection
             connection_ok = await self.client_manager.test_connection()
-            
+
             return {
                 "status": "healthy" if connection_ok else "unhealthy",
                 "component": self.name,
@@ -84,7 +84,7 @@ class BaseYamcsComponent(ABC):
             error=str(error),
             error_type=type(error).__name__,
         )
-        
+
         return {
             "error": True,
             "message": str(error),

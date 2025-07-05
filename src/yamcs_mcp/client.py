@@ -1,7 +1,7 @@
 """Yamcs client factory and connection management."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 import structlog
 from yamcs.client import YamcsClient
@@ -96,7 +96,7 @@ class YamcsClientManager:
             YamcsConnectionError: If connection fails
             YamcsAuthenticationError: If authentication fails
         """
-        async with self.get_client() as client:
+        async with self.get_client():
             # Return a new client instance that won't be closed
             new_client = YamcsClient(self.config.url)
             if self.config.username and self.config.password:

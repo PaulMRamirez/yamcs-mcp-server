@@ -53,7 +53,18 @@ We welcome contributions to the Yamcs MCP Server! This document provides guideli
    pytest --cov=yamcs_mcp --cov-report=term-missing --cov-report=html
    ```
 
-5. Run code quality checks:
+5. Build and serve documentation:
+   ```bash
+   # Using uv:
+   uv run mkdocs build    # Build documentation
+   uv run mkdocs serve    # Serve at http://localhost:8000
+   
+   # Using pip/venv:
+   mkdocs build
+   mkdocs serve
+   ```
+
+6. Run code quality checks:
    ```bash
    # Using uv:
    uv run ruff check .

@@ -25,10 +25,10 @@ class LinkManagementComponent(BaseYamcsComponent):
 
     def register_with_server(self, server: Any) -> None:
         """Register Link Management tools and resources with the server."""
-        
+
         # Store reference to self for use in closures
         component = self
-        
+
         @server.tool()
         async def link_list_links(
             instance: str | None = None,
@@ -47,14 +47,14 @@ class LinkManagementComponent(BaseYamcsComponent):
                     for link in client.list_links(instance or component.config.instance):
                         links.append({
                             "name": link.name,
-                            "type": getattr(link, 'type', None),
+                            "type": getattr(link, 'class_name', None),
                             "status": link.status,
-                            "disabled": getattr(link, 'disabled', False),
+                            "disabled": not getattr(link, 'enabled', True),
                             "parent": getattr(link, 'parent_name', None),
-                            "data_in_count": getattr(link, 'data_in_count', 0),
-                            "data_out_count": getattr(link, 'data_out_count', 0),
+                            "data_in_count": getattr(link, 'in_count', 0),
+                            "data_out_count": getattr(link, 'out_count', 0),
                         })
-                    
+
                     return {
                         "instance": instance or component.config.instance,
                         "count": len(links),
@@ -79,23 +79,28 @@ class LinkManagementComponent(BaseYamcsComponent):
             """
             try:
                 async with component.client_manager.get_client() as client:
-                    link_obj = client.get_link(
+                    link_client = client.get_link(
                         instance=instance or component.config.instance,
                         link=link,
                     )
                     
+                    # Get the link info from the LinkClient
+                    link_info = link_client.get_info()
+
                     return {
-                        "name": link_obj.name,
-                        "type": getattr(link_obj, 'type', None),
-                        "status": link_obj.status,
-                        "disabled": getattr(link_obj, 'disabled', False),
+                        "name": link_info.name,
+                        "type": getattr(link_info, 'class_name', None),
+                        "status": link_info.status,
+                        "disabled": not getattr(link_info, 'enabled', True),
                         "statistics": {
-                            "data_in_count": getattr(link_obj, 'data_in_count', 0),
-                            "data_out_count": getattr(link_obj, 'data_out_count', 0),
-                            "last_data_in": getattr(link_obj, 'last_data_in_time', None),
-                            "last_data_out": getattr(link_obj, 'last_data_out_time', None),
+                            "data_in_count": getattr(link_info, 'in_count', 0),
+                            "data_out_count": getattr(link_info, 'out_count', 0),
+                            "last_data_in": getattr(link_info, 'dataInTime', None),
+                            "last_data_out": getattr(link_info, 'dataOutTime', None),
                         },
-                        "details": getattr(link_obj, 'detail_status', None),
+                        "details": getattr(link_info, 'detail_status', None),
+                        "extra": getattr(link_info, 'extra', {}),
+                        "actions": getattr(link_info, 'actions', []),
                     }
             except Exception as e:
                 return component._handle_error("link_get_status", e)
@@ -120,10 +125,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         link=link,
                     )
-                    
+
                     # Enable the link
                     link_obj.enable()
-                    
+
                     return {
                         "success": True,
                         "link": link,
@@ -153,10 +158,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         link=link,
                     )
-                    
+
                     # Disable the link
                     link_obj.disable()
-                    
+
                     return {
                         "success": True,
                         "link": link,
@@ -186,10 +191,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         link=link,
                     )
-                    
+
                     # Reset counters
                     link_obj.reset_counters()
-                    
+
                     return {
                         "success": True,
                         "link": link,
@@ -213,7 +218,7 @@ class LinkManagementComponent(BaseYamcsComponent):
             """
             try:
                 async with component.client_manager.get_client() as client:
-                    stats = {
+                    stats: dict[str, Any] = {
                         "total_links": 0,
                         "enabled_links": 0,
                         "disabled_links": 0,
@@ -223,30 +228,30 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "total_data_out": 0,
                         "links": [],
                     }
-                    
+
                     for link in client.list_links(instance or component.config.instance):
                         stats["total_links"] += 1
-                        
-                        if getattr(link, 'disabled', False):
+
+                        if not getattr(link, 'enabled', True):
                             stats["disabled_links"] += 1
                         else:
                             stats["enabled_links"] += 1
-                        
+
                         if link.status == "OK":
                             stats["ok_links"] += 1
                         elif link.status == "FAILED":
                             stats["failed_links"] += 1
-                        
-                        stats["total_data_in"] += getattr(link, 'data_in_count', 0) or 0
-                        stats["total_data_out"] += getattr(link, 'data_out_count', 0) or 0
-                        
+
+                        stats["total_data_in"] += getattr(link, 'in_count', 0) or 0
+                        stats["total_data_out"] += getattr(link, 'out_count', 0) or 0
+
                         stats["links"].append({
                             "name": link.name,
                             "status": link.status,
-                            "data_in": getattr(link, 'data_in_count', 0),
-                            "data_out": getattr(link, 'data_out_count', 0),
+                            "data_in": getattr(link, 'in_count', 0),
+                            "data_out": getattr(link, 'out_count', 0),
                         })
-                    
+
                     return {
                         "instance": instance or component.config.instance,
                         "statistics": stats,
@@ -265,13 +270,13 @@ class LinkManagementComponent(BaseYamcsComponent):
                     for link in client.list_links(component.config.instance):
                         links.append({
                             "name": link.name,
-                            "type": getattr(link, 'type', 'unknown'),
+                            "type": getattr(link, 'class_name', 'unknown'),
                             "status": link.status,
-                            "disabled": getattr(link, 'disabled', False),
-                            "data_in_count": getattr(link, 'data_in_count', 0),
-                            "data_out_count": getattr(link, 'data_out_count', 0),
+                            "disabled": not getattr(link, 'enabled', True),
+                            "data_in_count": getattr(link, 'in_count', 0),
+                            "data_out_count": getattr(link, 'out_count', 0),
                         })
-                    
+
                     lines = [f"Links in {component.config.instance} ({len(links)} total):"]
                     for link in links:
                         status = "DISABLED" if link["disabled"] else link["status"]
@@ -280,10 +285,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                             f"  - {link['name']}{type_info}: {status} "
                             f"[in: {link['data_in_count']}, out: {link['data_out_count']}]"
                         )
-                    
+
                     return "\n".join(lines)
             except Exception as e:
-                return f"Error: {str(e)}"
+                return f"Error: {e!s}"
 
         @server.resource("link://statistics")
         async def get_link_statistics() -> str:
@@ -300,23 +305,23 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "total_data_in": 0,
                         "total_data_out": 0,
                     }
-                    
+
                     for link in client.list_links(component.config.instance):
                         stats["total_links"] += 1
-                        
-                        if getattr(link, 'disabled', False):
+
+                        if not getattr(link, 'enabled', True):
                             stats["disabled_links"] += 1
                         else:
                             stats["enabled_links"] += 1
-                        
+
                         if link.status == "OK":
                             stats["ok_links"] += 1
                         elif link.status == "FAILED":
                             stats["failed_links"] += 1
-                        
-                        stats["total_data_in"] += getattr(link, 'data_in_count', 0) or 0
-                        stats["total_data_out"] += getattr(link, 'data_out_count', 0) or 0
-                    
+
+                        stats["total_data_in"] += getattr(link, 'in_count', 0) or 0
+                        stats["total_data_out"] += getattr(link, 'out_count', 0) or 0
+
                     lines = [
                         f"Link Statistics for {component.config.instance}:",
                         f"  Total Links: {stats['total_links']}",
@@ -328,7 +333,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                         f"  Total Data In: {stats['total_data_in']}",
                         f"  Total Data Out: {stats['total_data_out']}",
                     ]
-                    
+
                     return "\n".join(lines)
             except Exception as e:
-                return f"Error: {str(e)}"
+                return f"Error: {e!s}"

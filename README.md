@@ -60,10 +60,10 @@ yamcs-mcp
 You'll need a running Yamcs instance. The easiest way is using Docker:
 
 ```bash
-docker run -d --name yamcs -p 8090:8090 yamcs/quickstart
+docker run -d --name yamcs -p 8090:8090 yamcs/example-simulation
 ```
 
-This will start Yamcs with a default `myproject` instance.
+This will start Yamcs with a `simulator` instance that includes example telemetry data.
 
 ## Configuration
 
@@ -104,7 +104,7 @@ Add the server to your Claude Desktop configuration:
       "args": ["--directory", "/path/to/yamcs-mcp-server", "run", "yamcs-mcp"],
       "env": {
         "YAMCS_URL": "http://localhost:8090",
-        "YAMCS_INSTANCE": "myproject"
+        "YAMCS_INSTANCE": "simulator"
       }
     }
   }

@@ -1,11 +1,12 @@
 """Pytest configuration and fixtures for Yamcs MCP Server tests."""
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from yamcs.client import YamcsClient
 
 from yamcs_mcp.client import YamcsClientManager
-from yamcs_mcp.config import Config, YamcsConfig, MCPConfig
+from yamcs_mcp.config import Config, MCPConfig, YamcsConfig
 
 
 @pytest.fixture
@@ -42,13 +43,13 @@ def mock_config(mock_yamcs_config, mock_mcp_config):
 def mock_yamcs_client():
     """Create a mock Yamcs client."""
     client = Mock(spec=YamcsClient)
-    
+
     # Mock common methods
     client.get_server_info.return_value = Mock(
         version="5.0.0",
         serverId="test-server",
     )
-    
+
     client.list_instances.return_value = [
         Mock(
             name="test-instance",
@@ -56,7 +57,7 @@ def mock_yamcs_client():
             mission_time="2024-01-01T00:00:00Z",
         )
     ]
-    
+
     return client
 
 
@@ -65,13 +66,13 @@ def mock_client_manager(mock_yamcs_config, mock_yamcs_client):
     """Create a mock client manager."""
     manager = Mock(spec=YamcsClientManager)
     manager.config = mock_yamcs_config
-    
+
     # Create async context manager mock
     async_cm = AsyncMock()
     async_cm.__aenter__.return_value = mock_yamcs_client
     async_cm.__aexit__.return_value = None
-    
+
     manager.get_client.return_value = async_cm
     manager.test_connection = AsyncMock(return_value=True)
-    
+
     return manager

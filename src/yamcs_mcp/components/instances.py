@@ -25,10 +25,10 @@ class InstanceManagementComponent(BaseYamcsComponent):
 
     def register_with_server(self, server: Any) -> None:
         """Register Instance Management tools and resources with the server."""
-        
+
         # Store reference to self for use in closures
         component = self
-        
+
         @server.tool()
         async def instance_list_instances() -> dict[str, Any]:
             """List Yamcs instances.
@@ -44,18 +44,26 @@ class InstanceManagementComponent(BaseYamcsComponent):
                             "name": instance.name,
                             "state": instance.state,
                             "mission_time": instance.mission_time,
-                            "labels": instance.labels if hasattr(instance, 'labels') else {},
-                            "template": instance.template if hasattr(instance, 'template') else None,
-                            "capabilities": instance.capabilities if hasattr(instance, 'capabilities') else [],
+                            "labels": (
+                                instance.labels if hasattr(instance, 'labels') else {}
+                            ),
+                            "template": (
+                                instance.template if hasattr(instance, 'template') else None
+                            ),
+                            "capabilities": (
+                                instance.capabilities
+                                if hasattr(instance, 'capabilities')
+                                else []
+                            ),
                         })
-                    
+
                     return {
                         "count": len(instances),
                         "instances": instances,
                     }
             except Exception as e:
                 return component._handle_error("instance_list_instances", e)
-        
+
 
         @server.tool()
         async def instance_get_info(
@@ -72,15 +80,27 @@ class InstanceManagementComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     inst = client.get_instance(instance or component.config.instance)
-                    
+
                     return {
                         "name": inst.name,
                         "state": inst.state,
                         "mission_time": inst.mission_time,
-                        "labels": inst.labels if hasattr(inst, 'labels') else {},
-                        "template": inst.template if hasattr(inst, 'template') else None,
-                        "capabilities": inst.capabilities if hasattr(inst, 'capabilities') else [],
-                        "processors": [p.name for p in inst.list_processors()] if hasattr(inst, 'list_processors') else [],
+                        "labels": (
+                            inst.labels if hasattr(inst, 'labels') else {}
+                        ),
+                        "template": (
+                            inst.template if hasattr(inst, 'template') else None
+                        ),
+                        "capabilities": (
+                            inst.capabilities
+                            if hasattr(inst, 'capabilities')
+                            else []
+                        ),
+                        "processors": (
+                            [p.name for p in inst.list_processors()]
+                            if hasattr(inst, 'list_processors')
+                            else []
+                        ),
                     }
             except Exception as e:
                 return component._handle_error("instance_get_info", e)
@@ -100,10 +120,10 @@ class InstanceManagementComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     inst = client.get_instance(instance)
-                    
+
                     # Start instance
                     inst.start()
-                    
+
                     return {
                         "success": True,
                         "instance": instance,
@@ -128,10 +148,10 @@ class InstanceManagementComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     inst = client.get_instance(instance)
-                    
+
                     # Stop instance
                     inst.stop()
-                    
+
                     return {
                         "success": True,
                         "instance": instance,
@@ -156,14 +176,20 @@ class InstanceManagementComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     services = []
-                    for service in client.list_services(instance or component.config.instance):
+                    for service in client.list_services(
+                        instance or component.config.instance
+                    ):
                         services.append({
                             "name": service.name,
                             "class": service.class_name,
                             "state": service.state,
-                            "processor": service.processor if hasattr(service, 'processor') else None,
+                            "processor": (
+                                service.processor
+                                if hasattr(service, 'processor')
+                                else None
+                            ),
                         })
-                    
+
                     return {
                         "instance": instance or component.config.instance,
                         "count": len(services),
@@ -193,7 +219,7 @@ class InstanceManagementComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         service=service,
                     )
-                    
+
                     return {
                         "success": True,
                         "service": service,
@@ -225,7 +251,7 @@ class InstanceManagementComponent(BaseYamcsComponent):
                         instance=instance or component.config.instance,
                         service=service,
                     )
-                    
+
                     return {
                         "success": True,
                         "service": service,
@@ -248,19 +274,23 @@ class InstanceManagementComponent(BaseYamcsComponent):
                         instances.append({
                             "name": instance.name,
                             "state": instance.state,
-                            "template": instance.template if hasattr(instance, 'template') else None,
+                            "template": (
+                                instance.template
+                                if hasattr(instance, 'template')
+                                else None
+                            ),
                         })
-                    
+
                     lines = ["Yamcs Instances:"]
                     for inst in instances:
                         lines.append(
                             f"  - {inst['name']}: {inst['state']} "
                             f"(template: {inst.get('template', 'none')})"
                         )
-                    
+
                     return "\n".join(lines)
             except Exception as e:
-                return f"Error: {str(e)}"
+                return f"Error: {e!s}"
 
         @server.resource("instance://services/{instance}")
         async def list_instance_services(instance: str) -> str:
@@ -269,21 +299,34 @@ class InstanceManagementComponent(BaseYamcsComponent):
             try:
                 async with component.client_manager.get_client() as client:
                     services = []
-                    for service in client.list_services(instance or component.config.instance):
+                    for service in client.list_services(
+                        instance or component.config.instance
+                    ):
                         services.append({
                             "name": service.name,
                             "class": service.class_name,
                             "state": service.state,
-                            "processor": service.processor if hasattr(service, 'processor') else None,
+                            "processor": (
+                                service.processor
+                                if hasattr(service, 'processor')
+                                else None
+                            ),
                         })
-                    
-                    lines = [f"Services in instance '{instance}' ({len(services)} total):"]
+
+                    lines = [
+                        f"Services in instance '{instance}' ({len(services)} total):"
+                    ]
                     for svc in services:
-                        processor_info = f" (processor: {svc['processor']})" if svc.get('processor') else ""
-                        lines.append(
-                            f"  - {svc['name']} [{svc['state']}]: {svc['class']}{processor_info}"
+                        processor_info = (
+                            f" (processor: {svc['processor']})"
+                            if svc.get('processor')
+                            else ""
                         )
-                    
+                        lines.append(
+                            f"  - {svc['name']} [{svc['state']}]: "
+                            f"{svc['class']}{processor_info}"
+                        )
+
                     return "\n".join(lines)
             except Exception as e:
-                return f"Error: {str(e)}"
+                return f"Error: {e!s}"

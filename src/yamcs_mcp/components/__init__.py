@@ -9,11 +9,11 @@ from .processor import ProcessorComponent
 from .storage import ObjectStorageComponent
 
 __all__ = [
-    "BaseYamcsComponent",
-    "MDBComponent",
-    "ProcessorComponent",
     "ArchiveComponent",
-    "LinkManagementComponent",
-    "ObjectStorageComponent",
+    "BaseYamcsComponent",
     "InstanceManagementComponent",
+    "LinkManagementComponent",
+    "MDBComponent",
+    "ObjectStorageComponent",
+    "ProcessorComponent",
 ]
