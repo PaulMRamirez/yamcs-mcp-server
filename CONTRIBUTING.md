@@ -15,6 +15,7 @@ We welcome contributions to the Yamcs MCP Server! This document provides guideli
 
 3. Set up the development environment:
    ```bash
+   # Using uv (recommended):
    # Install uv if you haven't already
    curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -22,6 +23,12 @@ We welcome contributions to the Yamcs MCP Server! This document provides guideli
    uv sync --all-extras
 
    # Install pre-commit hooks
+   pre-commit install
+   
+   # OR using pip:
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -e ".[dev,docs]"
    pre-commit install
    ```
 
@@ -36,14 +43,27 @@ We welcome contributions to the Yamcs MCP Server! This document provides guideli
 3. Add or update tests as needed
 4. Run the test suite:
    ```bash
+   # Using uv:
    uv run pytest
+   
+   # Using pip/venv:
+   pytest
+   
+   # Run with coverage:
+   pytest --cov=yamcs_mcp --cov-report=term-missing --cov-report=html
    ```
 
 5. Run code quality checks:
    ```bash
+   # Using uv:
    uv run ruff check .
    uv run ruff format .
    uv run mypy src/
+   
+   # Using pip/venv:
+   ruff check src tests
+   ruff format src tests
+   mypy src
    ```
 
 ### Commit Guidelines
