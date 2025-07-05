@@ -90,8 +90,57 @@ Add the server to your Claude Desktop configuration:
 {
   "mcp-servers": {
     "yamcs": {
-      "command": "uv",
+      "command": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server/yamcs-mcp-wrapper.sh",
+      "env": {
+        "YAMCS_URL": "http://localhost:8090",
+        "YAMCS_INSTANCE": "simulator"
+      }
+    }
+  }
+}
+```
+
+Alternative configurations:
+
+1. **Using the wrapper script** (recommended):
+```json
+{
+  "mcp-servers": {
+    "yamcs": {
+      "command": "/path/to/yamcs-mcp-server/yamcs-mcp-wrapper.sh",
+      "env": {
+        "YAMCS_URL": "http://localhost:8090",
+        "YAMCS_INSTANCE": "simulator"
+      }
+    }
+  }
+}
+```
+
+2. **Using Python directly**:
+```json
+{
+  "mcp-servers": {
+    "yamcs": {
+      "command": "python3",
+      "args": ["/path/to/yamcs-mcp-server/run_server.py"],
+      "env": {
+        "YAMCS_URL": "http://localhost:8090",
+        "YAMCS_INSTANCE": "simulator"
+      }
+    }
+  }
+}
+```
+
+3. **Using uv with full path**:
+```json
+{
+  "mcp-servers": {
+    "yamcs": {
+      "command": "/Users/pramirez/.local/bin/uv",
       "args": ["run", "yamcs-mcp"],
+      "cwd": "/Users/pramirez/Development/ClaudeCode/yamcs-mcp-server",
       "env": {
         "YAMCS_URL": "http://localhost:8090",
         "YAMCS_INSTANCE": "simulator"

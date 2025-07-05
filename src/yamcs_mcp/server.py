@@ -75,44 +75,65 @@ class YamcsMCPServer:
         """Initialize and compose all enabled components."""
         self.logger.info("Initializing Yamcs MCP components")
         
-        # Create enabled components
-        components = []
+        # Store components for reference
+        self.components = []
         
         if self.config.yamcs.enable_mdb:
             self.logger.info("Enabling MDB component")
             mdb = MDBComponent(self.client_manager, self.config.yamcs)
-            components.append(mdb)
+            self.components.append(mdb)
+            # Copy tools and resources from component to main server
+            for tool in mdb._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in mdb._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
         if self.config.yamcs.enable_processor:
             self.logger.info("Enabling Processor component")
             processor = ProcessorComponent(self.client_manager, self.config.yamcs)
-            components.append(processor)
+            self.components.append(processor)
+            for tool in processor._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in processor._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
         if self.config.yamcs.enable_archive:
             self.logger.info("Enabling Archive component")
             archive = ArchiveComponent(self.client_manager, self.config.yamcs)
-            components.append(archive)
+            self.components.append(archive)
+            for tool in archive._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in archive._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
         if self.config.yamcs.enable_links:
             self.logger.info("Enabling Link Management component")
             links = LinkManagementComponent(self.client_manager, self.config.yamcs)
-            components.append(links)
+            self.components.append(links)
+            for tool in links._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in links._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
         if self.config.yamcs.enable_storage:
             self.logger.info("Enabling Object Storage component")
             storage = ObjectStorageComponent(self.client_manager, self.config.yamcs)
-            components.append(storage)
+            self.components.append(storage)
+            for tool in storage._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in storage._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
         if self.config.yamcs.enable_instances:
             self.logger.info("Enabling Instance Management component")
             instances = InstanceManagementComponent(self.client_manager, self.config.yamcs)
-            components.append(instances)
+            self.components.append(instances)
+            for tool in instances._tools.values():
+                self.mcp.add_tool(tool.fn, name=tool.name, description=tool.description)
+            for uri, resource in instances._resources.items():
+                self.mcp.add_resource_fn(resource.fn, uri=uri, name=resource.name, description=resource.description)
         
-        # Compose components into main server
-        for component in components:
-            self.mcp.add_component(component)
-        
-        self.logger.info(f"Initialized {len(components)} components")
+        self.logger.info(f"Initialized {len(self.components)} components")
 
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""
