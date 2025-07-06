@@ -1,4 +1,4 @@
-"""Yamcs MCP component servers."""
+"""Yamcs MCP servers."""
 
 from .archive import ArchiveServer
 from .instances import InstanceServer

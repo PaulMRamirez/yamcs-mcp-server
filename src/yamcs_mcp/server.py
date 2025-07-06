@@ -48,7 +48,7 @@ def setup_logging(log_level: str = "INFO") -> None:
 
 
 class YamcsMCPServer:
-    """Main Yamcs MCP Server that composes all components."""
+    """Main Yamcs MCP Server that composes all servers."""
 
     def __init__(self, config: Config | None = None) -> None:
         """Initialize the Yamcs MCP Server.
@@ -69,16 +69,16 @@ class YamcsMCPServer:
             version="0.0.1-beta",
         )
 
-        # Initialize and compose components
-        self._initialize_components()
+        # Initialize and compose servers
+        self._initialize_servers()
 
         # Register server-wide tools
         self._register_server_tools()
 
-    def _initialize_components(self) -> None:
-        """Initialize and compose all enabled component servers."""
-        self.logger.info("Initializing Yamcs MCP component servers")
-        
+    def _initialize_servers(self) -> None:
+        """Initialize and compose all enabled servers."""
+        self.logger.info("Initializing Yamcs MCP servers")
+
         # Count mounted servers for logging
         mounted_count = 0
 
@@ -102,8 +102,8 @@ class YamcsMCPServer:
 
         if self.config.yamcs.enable_links:
             self.logger.info("Mounting Link Management server")
-            link_server = LinksServer(self.client_manager, self.config.yamcs)
-            self.mcp.mount(link_server, prefix="link")
+            links_server = LinksServer(self.client_manager, self.config.yamcs)
+            self.mcp.mount(links_server, prefix="links")
             mounted_count += 1
 
         if self.config.yamcs.enable_storage:
@@ -118,7 +118,7 @@ class YamcsMCPServer:
             self.mcp.mount(instance_server, prefix="instance")
             mounted_count += 1
 
-        self.logger.info(f"Mounted {mounted_count} component servers")
+        self.logger.info(f"Mounted {mounted_count} servers")
 
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""

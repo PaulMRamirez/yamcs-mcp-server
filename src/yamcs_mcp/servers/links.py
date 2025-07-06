@@ -105,8 +105,6 @@ class LinksServer(BaseYamcsServer):
                         "statistics": {
                             "data_in_count": getattr(link_info, 'in_count', 0),
                             "data_out_count": getattr(link_info, 'out_count', 0),
-                            "last_data_in_time": getattr(link_info, 'dataInTime', None),
-                            "last_data_out_time": getattr(link_info, 'dataOutTime', None),
                         },
                         
                         # Configuration (if available)

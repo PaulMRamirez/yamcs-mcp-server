@@ -172,8 +172,8 @@ class TestFastMCPIntegration:
             # through the server's tool registry
 
     @pytest.mark.asyncio
-    async def test_component_health_checks(self, integration_config, mock_yamcs_client):
-        """Test that all components report health correctly."""
+    async def test_server_health_checks(self, integration_config, mock_yamcs_client):
+        """Test that all servers report health correctly."""
         mock_yamcs_client.test_connection = AsyncMock(return_value=True)
 
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
@@ -182,12 +182,12 @@ class TestFastMCPIntegration:
             # Test server health check
             # The health_check is registered as a tool on the MCP server
             # In a real MCP scenario, it would be called through the MCP protocol
-            # For testing, we can verify the server and components are created
+            # For testing, we can verify the server and sub-servers are created
             assert server.mcp is not None
             assert server.mcp.name == "YamcsServer"
-            # Component servers are mounted but not stored anymore
+            # Sub-servers are mounted but not stored anymore
 
-            # Each component should also have health check capability
+            # Each server should also have health check capability
             # through their base class implementation
 
     @pytest.mark.asyncio
@@ -263,9 +263,9 @@ class TestFastMCPIntegration:
             assert server_http.config.mcp.transport == "http"
 
     @pytest.mark.asyncio
-    async def test_component_disabling(self, integration_config, mock_yamcs_client):
-        """Test that components can be disabled."""
-        # Disable some components
+    async def test_server_disabling(self, integration_config, mock_yamcs_client):
+        """Test that servers can be disabled."""
+        # Disable some servers
         integration_config.yamcs.enable_mdb = False
         integration_config.yamcs.enable_storage = False
 

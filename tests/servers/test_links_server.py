@@ -18,7 +18,7 @@ class TestLinksServer:
     def test_link_server_initialization(self, link_server):
         """Test that the Link server initializes correctly."""
         assert link_server.name == "YamcsLinksServer"
-        assert link_server.component_name == "Links"
+        assert link_server.server_name == "Links"
         assert link_server.client_manager is not None
         assert link_server.config is not None
 
@@ -38,5 +38,5 @@ class TestLinksServer:
         assert error_result["error"] is True
         assert error_result["message"] == "Link error"
         assert error_result["operation"] == "list_links"
-        assert error_result["component"] == "Links"
+        assert error_result["server_type"] == "Links"
         assert error_result["server"] == "YamcsLinksServer"

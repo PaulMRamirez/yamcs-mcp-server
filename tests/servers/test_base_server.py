@@ -23,7 +23,7 @@ class TestBaseYamcsServer:
     def test_base_server_initialization(self, test_server, mock_client_manager, mock_yamcs_config):
         """Test base server initialization."""
         assert test_server.name == "YamcsTestServer"
-        assert test_server.component_name == "Test"
+        assert test_server.server_name == "Test"
         assert test_server.client_manager == mock_client_manager
         assert test_server.config == mock_yamcs_config
         assert test_server.logger is not None
@@ -36,5 +36,5 @@ class TestBaseYamcsServer:
         assert result["error"] is True
         assert result["message"] == "Something went wrong"
         assert result["operation"] == "test_operation"
-        assert result["component"] == "Test"
+        assert result["server_type"] == "Test"
         assert result["server"] == "YamcsTestServer"

@@ -91,7 +91,7 @@ class ProcessorServer(BaseYamcsServer):
                             "error": True,
                             "message": f"Processor '{processor}' not found in instance '{target_instance}'",
                             "operation": "get_processor",
-                            "component": self.component_name,
+                            "server_type": self.server_name,
                         }
                     
                     return {

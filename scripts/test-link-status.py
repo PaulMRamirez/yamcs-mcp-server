@@ -77,8 +77,6 @@ async def test_link_get_status():
             print(f"   Disabled: {getattr(link_info, 'disabled', False)}")
             print(f"   In Count: {getattr(link_info, 'in_count', 0):,}")
             print(f"   Out Count: {getattr(link_info, 'out_count', 0):,}")
-            print(f"   Last Data In: {getattr(link_info, 'dataInTime', 'N/A')}")
-            print(f"   Last Data Out: {getattr(link_info, 'dataOutTime', 'N/A')}")
             print(f"   Details: {getattr(link_info, 'detail_status', 'N/A')}")
             
     except Exception as e:

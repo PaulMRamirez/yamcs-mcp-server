@@ -18,7 +18,7 @@ class TestMDBServer:
     def test_mdb_server_initialization(self, mdb_server):
         """Test that the MDB server initializes correctly."""
         assert mdb_server.name == "YamcsMDBServer"
-        assert mdb_server.component_name == "MDB"
+        assert mdb_server.server_name == "MDB"
         assert mdb_server.client_manager is not None
         assert mdb_server.config is not None
 
@@ -48,5 +48,5 @@ class TestMDBServer:
         assert error_result["error"] is True
         assert error_result["message"] == "MDB error"
         assert error_result["operation"] == "parameters"
-        assert error_result["component"] == "MDB"
+        assert error_result["server_type"] == "MDB"
         assert error_result["server"] == "YamcsMDBServer"

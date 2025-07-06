@@ -22,20 +22,20 @@ class BaseYamcsServer(FastMCP):
         """Initialize base server.
 
         Args:
-            name: Component name (e.g., "MDB", "Links")
+            name: Server name (e.g., "MDB", "Links")
             client_manager: Yamcs client manager
             config: Yamcs configuration
             version: Server version
         """
         super().__init__(name=f"Yamcs{name}Server", version=version)
         
-        self.component_name = name
+        self.server_name = name
         self.client_manager = client_manager
         self.config = config
         self.logger = structlog.get_logger(f"yamcs_mcp.{name.lower()}")
 
     def _handle_error(self, operation: str, error: Exception) -> dict[str, Any]:
-        """Handle errors consistently across component servers.
+        """Handle errors consistently across servers.
 
         Args:
             operation: Operation that failed
@@ -55,6 +55,6 @@ class BaseYamcsServer(FastMCP):
             "error": True,
             "message": str(error),
             "operation": operation,
-            "component": self.component_name,
+            "server_type": self.server_name,
             "server": self.name,
         }

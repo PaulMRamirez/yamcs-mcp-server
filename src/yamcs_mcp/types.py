@@ -6,15 +6,15 @@ from yamcs.client import YamcsClient
 
 
 @runtime_checkable
-class YamcsComponent(Protocol):
-    """Protocol for all Yamcs MCP components."""
+class YamcsServer(Protocol):
+    """Protocol for all Yamcs MCP servers."""
 
     async def initialize(self, client: YamcsClient, instance: str) -> None:
-        """Initialize component with Yamcs client."""
+        """Initialize server with Yamcs client."""
         ...
 
     async def health_check(self) -> bool:
-        """Check component health."""
+        """Check server health."""
         ...
 
 

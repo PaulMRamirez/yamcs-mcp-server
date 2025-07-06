@@ -28,7 +28,7 @@ class YamcsConfig(BaseSettings):
     timeout: float = Field(default=30.0, ge=1.0, le=300.0)
     max_retries: int = Field(default=3, ge=0, le=10)
 
-    # Component toggles
+    # Server toggles
     enable_mdb: bool = True
     enable_processor: bool = True
     enable_archive: bool = True

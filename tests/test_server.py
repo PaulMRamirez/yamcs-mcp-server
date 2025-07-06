@@ -29,21 +29,21 @@ class TestYamcsMCPServer:
         setup_logging("INFO")
         setup_logging("DEBUG")
 
-    def test_server_has_mounted_components(self, mock_config, mock_client_manager):
-        """Test that server mounts component servers."""
+    def test_server_has_mounted_servers(self, mock_config, mock_client_manager):
+        """Test that server mounts sub-servers."""
         with patch(
             "yamcs_mcp.server.YamcsClientManager",
             return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
 
-            # Verify that mount was called for each enabled component
+            # Verify that mount was called for each enabled server
             # We can't directly check mounts, but we can verify the server was created
             assert server.mcp is not None
             assert hasattr(server.mcp, 'mount')
 
-    def test_component_registration(self, mock_config, mock_client_manager):
-        """Test that component servers are mounted with the main server."""
+    def test_server_registration(self, mock_config, mock_client_manager):
+        """Test that sub-servers are mounted with the main server."""
         # Mock FastMCP and all server classes
         with (
             patch(
@@ -102,7 +102,7 @@ class TestYamcsMCPServer:
                 mock_client_manager, mock_config.yamcs
             )
 
-            # Verify mount was called on main server with each component server
+            # Verify mount was called on main server with each sub-server
             assert mock_fastmcp.mount.call_count == 6
             mock_fastmcp.mount.assert_any_call(mock_mdb, prefix="mdb")
             mock_fastmcp.mount.assert_any_call(mock_processor, prefix="processor")
@@ -111,9 +111,9 @@ class TestYamcsMCPServer:
             mock_fastmcp.mount.assert_any_call(mock_storage, prefix="storage")
             mock_fastmcp.mount.assert_any_call(mock_instance, prefix="instance")
 
-    def test_component_disabling(self, mock_config, mock_client_manager):
-        """Test that component servers can be disabled via config."""
-        # Disable some components
+    def test_server_disabling(self, mock_config, mock_client_manager):
+        """Test that servers can be disabled via config."""
+        # Disable some servers
         mock_config.yamcs.enable_mdb = False
         mock_config.yamcs.enable_archive = False
 

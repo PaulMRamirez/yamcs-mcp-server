@@ -1,7 +1,7 @@
 """Basic usage example for Yamcs MCP Server.
 
 This example demonstrates the server composition architecture where each
-Yamcs component (MDB, Links, Archive, etc.) is a separate FastMCP server
+Yamcs server (MDB, Links, Archive, etc.) is a separate FastMCP server
 that gets mounted to the main server with a prefix.
 """
 
@@ -23,7 +23,7 @@ async def main():
     # Create configuration
     config = Config.from_env()
 
-    # Create server - this will mount all enabled component servers
+    # Create server - this will mount all enabled sub-servers
     server = YamcsMCPServer(config)
 
     # Run the server
@@ -32,11 +32,7 @@ async def main():
     print(f"Default instance: {config.yamcs.instance}")
     print(f"Transport: {config.mcp.transport}")
     
-    # Show mounted component servers
-    if server.component_servers:
-        print("\nMounted component servers:")
-        for prefix, component_server in server.component_servers.items():
-            print(f"  - {prefix}: {component_server.name}")
+    # The server mounts all enabled sub-servers automatically
 
     await server.run()
 
