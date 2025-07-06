@@ -63,18 +63,18 @@ class LinkServer(BaseYamcsServer):
                 return self._handle_error("list_links", e)
 
         @self.tool()
-        async def get_status(
+        async def describe_link(
             link: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
-            """Get detailed link status.
+            """Get comprehensive information about a specific link.
 
             Args:
                 link: Link name
                 instance: Yamcs instance (uses default if not specified)
 
             Returns:
-                dict: Link status information
+                dict: Complete link information including configuration, status, and statistics
             """
             try:
                 async with self.client_manager.get_client() as client:
@@ -86,23 +86,53 @@ class LinkServer(BaseYamcsServer):
                     # Get the link info from the LinkClient
                     link_info = link_client.get_info()
 
-                    return {
+                    # Build comprehensive link information
+                    link_description = {
                         "name": link_info.name,
+                        "qualified_name": getattr(link_info, 'qualified_name', link_info.name),
                         "type": getattr(link_info, 'class_name', None),
-                        "status": link_info.status,
-                        "disabled": not getattr(link_info, 'enabled', True),
+                        "parent": getattr(link_info, 'parent_name', None),
+                        "instance": instance or self.config.instance,
+                        
+                        # Status information
+                        "status": {
+                            "state": link_info.status,
+                            "enabled": getattr(link_info, 'enabled', True),
+                            "detail": getattr(link_info, 'detail_status', None),
+                        },
+                        
+                        # Statistics
                         "statistics": {
                             "data_in_count": getattr(link_info, 'in_count', 0),
                             "data_out_count": getattr(link_info, 'out_count', 0),
-                            "last_data_in": getattr(link_info, 'dataInTime', None),
-                            "last_data_out": getattr(link_info, 'dataOutTime', None),
+                            "last_data_in_time": getattr(link_info, 'dataInTime', None),
+                            "last_data_out_time": getattr(link_info, 'dataOutTime', None),
                         },
-                        "details": getattr(link_info, 'detail_status', None),
+                        
+                        # Configuration (if available)
+                        "configuration": {
+                            "stream": getattr(link_info, 'stream', None),
+                            "address": getattr(link_info, 'address', None),
+                            "port": getattr(link_info, 'port', None),
+                        },
+                        
+                        # Additional information
                         "extra": getattr(link_info, 'extra', {}),
                         "actions": getattr(link_info, 'actions', []),
                     }
+                    
+                    # Remove None values from configuration
+                    link_description["configuration"] = {
+                        k: v for k, v in link_description["configuration"].items() if v is not None
+                    }
+                    
+                    # If configuration is empty, remove it
+                    if not link_description["configuration"]:
+                        del link_description["configuration"]
+                    
+                    return link_description
             except Exception as e:
-                return self._handle_error("get_status", e)
+                return self._handle_error("describe_link", e)
 
         @self.tool()
         async def enable_link(

@@ -147,7 +147,7 @@ class TestFastMCPIntegration:
 
                 # Link tools
                 "link_list_links",
-                "link_get_status",
+                "link_describe_link",
                 "link_enable_link",
                 "link_disable_link",
 
