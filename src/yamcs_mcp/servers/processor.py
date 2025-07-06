@@ -77,19 +77,33 @@ class ProcessorServer(BaseYamcsServer):
             """
             try:
                 async with self.client_manager.get_client() as client:
-                    proc = client.get_processor(
-                        instance=instance or self.config.instance,
-                        processor=processor,
-                    )
+                    # Find the processor in the list since ProcessorClient doesn't have the info
+                    target_instance = instance or self.config.instance
+                    proc_info = None
+                    
+                    for proc in client.list_processors(target_instance):
+                        if proc.name == processor:
+                            proc_info = proc
+                            break
+                    
+                    if not proc_info:
+                        return {
+                            "error": True,
+                            "message": f"Processor '{processor}' not found in instance '{target_instance}'",
+                            "operation": "get_processor",
+                            "component": self.component_name,
+                        }
                     
                     return {
-                        "name": proc.name,
-                        "state": proc.state,
-                        "mission_time": proc.mission_time.isoformat() if proc.mission_time else None,
-                        "type": getattr(proc, 'type', 'realtime'),
-                        "replay": getattr(proc, 'replay', False),
-                        "persistent": getattr(proc, 'persistent', True),
-                        "services": getattr(proc, 'services', []),
+                        "name": proc_info.name,
+                        "state": proc_info.state,
+                        "mission_time": proc_info.mission_time.isoformat() if proc_info.mission_time else None,
+                        "type": getattr(proc_info, 'type', 'realtime'),
+                        "replay": getattr(proc_info, 'replay', False),
+                        "persistent": getattr(proc_info, 'persistent', True),
+                        "services": getattr(proc_info, 'services', []),
+                        "owner": getattr(proc_info, 'owner', None),
+                        "protected": getattr(proc_info, 'protected', False),
                     }
             except Exception as e:
                 return self._handle_error("get_processor", e)
@@ -145,77 +159,81 @@ class ProcessorServer(BaseYamcsServer):
             except Exception as e:
                 return self._handle_error("control_processor", e)
 
-        @self.tool()
-        async def create_processor(
-            name: str,
-            type: str = "realtime",
-            config: dict[str, Any] | None = None,
-            instance: str | None = None,
-        ) -> dict[str, Any]:
-            """Create a new processor.
+        # Note: create_processor is not available in the current Yamcs Python client
+        # This would require using the REST API directly
+        # @self.tool()
+        # async def create_processor(
+        #     name: str,
+        #     type: str = "realtime",
+        #     config: dict[str, Any] | None = None,
+        #     instance: str | None = None,
+        # ) -> dict[str, Any]:
+        #     """Create a new processor.
 
-            Args:
-                name: Processor name
-                type: Processor type (realtime, replay)
-                config: Processor configuration
-                instance: Yamcs instance (uses default if not specified)
+        #     Args:
+        #         name: Processor name
+        #         type: Processor type (realtime, replay)
+        #         config: Processor configuration
+        #         instance: Yamcs instance (uses default if not specified)
 
-            Returns:
-                dict: Created processor info
-            """
-            try:
-                async with self.client_manager.get_client() as client:
-                    # Create processor
-                    proc = client.create_processor(
-                        instance=instance or self.config.instance,
-                        name=name,
-                        type=type,
-                        config=config or {},
-                    )
+        #     Returns:
+        #         dict: Created processor info
+        #     """
+        #     try:
+        #         async with self.client_manager.get_client() as client:
+        #             # Create processor
+        #             proc = client.create_processor(
+        #                 instance=instance or self.config.instance,
+        #                 name=name,
+        #                 type=type,
+        #                 config=config or {},
+        #             )
                     
-                    return {
-                        "success": True,
-                        "processor": {
-                            "name": proc.name,
-                            "state": proc.state,
-                            "type": type,
-                        },
-                        "message": f"Processor '{name}' created successfully",
-                    }
-            except Exception as e:
-                return self._handle_error("create_processor", e)
+        #             return {
+        #                 "success": True,
+        #                 "processor": {
+        #                     "name": proc.name,
+        #                     "state": proc.state,
+        #                     "type": type,
+        #                 },
+        #                 "message": f"Processor '{name}' created successfully",
+        #             }
+        #     except Exception as e:
+        #         return self._handle_error("create_processor", e)
 
-        @self.tool()
-        async def delete_processor(
-            processor: str,
-            instance: str | None = None,
-        ) -> dict[str, Any]:
-            """Delete a processor.
+        # Note: delete_processor is not available in the current Yamcs Python client
+        # This would require using the REST API directly
+        # @self.tool()
+        # async def delete_processor(
+        #     processor: str,
+        #     instance: str | None = None,
+        # ) -> dict[str, Any]:
+        #     """Delete a processor.
 
-            Args:
-                processor: Processor name
-                instance: Yamcs instance (uses default if not specified)
+        #     Args:
+        #         processor: Processor name
+        #         instance: Yamcs instance (uses default if not specified)
 
-            Returns:
-                dict: Operation result
-            """
-            try:
-                async with self.client_manager.get_client() as client:
-                    proc = client.get_processor(
-                        instance=instance or self.config.instance,
-                        processor=processor,
-                    )
+        #     Returns:
+        #         dict: Operation result
+        #     """
+        #     try:
+        #         async with self.client_manager.get_client() as client:
+        #             proc = client.get_processor(
+        #                 instance=instance or self.config.instance,
+        #                 processor=processor,
+        #             )
                     
-                    # Delete the processor
-                    proc.delete()
+        #             # Delete the processor
+        #             proc.delete()
                     
-                    return {
-                        "success": True,
-                        "processor": processor,
-                        "message": f"Processor '{processor}' deleted successfully",
-                    }
-            except Exception as e:
-                return self._handle_error("delete_processor", e)
+        #             return {
+        #                 "success": True,
+        #                 "processor": processor,
+        #                 "message": f"Processor '{processor}' deleted successfully",
+        #             }
+        #     except Exception as e:
+        #         return self._handle_error("delete_processor", e)
 
     def _register_processor_resources(self) -> None:
         """Register processor-specific resources."""
