@@ -134,20 +134,19 @@ class TestFastMCPIntegration:
                 "mdb_space_systems",
 
                 # Processor tools
-                "processor_list",
-                "processor_get_status",
-                "processor_issue_command",
-                "processor_get_parameter_value",
-                "processor_set_parameter_value",
+                "processor_list_processors",
+                "processor_get_processor",
+                "processor_control_processor",
+                "processor_get_processors_status",
 
                 # Archive tools
-                "archive_query_parameters",
-                "archive_get_parameter_samples",
-                "archive_query_events",
-                "archive_get_completeness",
+                "archive_list_packets",
+                "archive_get_parameter_values",
+                "archive_get_events",
+                "archive_get_command_history",
 
                 # Link tools
-                "link_list",
+                "link_list_links",
                 "link_get_status",
                 "link_enable_link",
                 "link_disable_link",
@@ -163,13 +162,12 @@ class TestFastMCPIntegration:
                 "object_get_metadata",
 
                 # Instance tools
-                "instance_list",
-                "instance_get_info",
-                "instance_start_instance",
-                "instance_stop_instance",
-                "instance_list_services",
-                "instance_start_service",
-                "instance_stop_service",
+                "instance_list_instances",
+                "instance_get_instance",
+                "instance_control_instance",
+                "instance_get_services",
+                "instance_get_instances_status",
+                "instance_get_current_instance",
             ]
 
             # In actual FastMCP integration, tools would be accessible

@@ -29,7 +29,7 @@ class ProcessorServer(BaseYamcsServer):
         """Register processor-specific tools."""
         
         @self.tool()
-        async def list(
+        async def list_processors(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List all processors.
@@ -59,7 +59,7 @@ class ProcessorServer(BaseYamcsServer):
                         "processors": processors,
                     }
             except Exception as e:
-                return self._handle_error("list", e)
+                return self._handle_error("list_processors", e)
 
         @self.tool()
         async def get_processor(
