@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 
 from ..client import YamcsClientManager
-from ..components.base_server import BaseYamcsServer
+from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
 
 

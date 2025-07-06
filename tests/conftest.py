@@ -50,7 +50,7 @@ def mock_yamcs_client():
         serverId="test-server",
     )
 
-    client.list.return_value = [
+    client.list_instances.return_value = [
         Mock(
             name="test-instance",
             state="RUNNING",
