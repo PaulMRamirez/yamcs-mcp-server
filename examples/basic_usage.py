@@ -1,4 +1,9 @@
-"""Basic usage example for Yamcs MCP Server."""
+"""Basic usage example for Yamcs MCP Server.
+
+This example demonstrates the server composition architecture where each
+Yamcs component (MDB, Links, Archive, etc.) is a separate FastMCP server
+that gets mounted to the main server with a prefix.
+"""
 
 import asyncio
 import os
@@ -18,14 +23,20 @@ async def main():
     # Create configuration
     config = Config.from_env()
 
-    # Create server
+    # Create server - this will mount all enabled component servers
     server = YamcsMCPServer(config)
 
     # Run the server
-    print("Starting Yamcs MCP Server...")
+    print("Starting Yamcs MCP Server with server composition...")
     print(f"Connecting to Yamcs at {config.yamcs.url}")
     print(f"Default instance: {config.yamcs.instance}")
     print(f"Transport: {config.mcp.transport}")
+    
+    # Show mounted component servers
+    if server.component_servers:
+        print("\nMounted component servers:")
+        for prefix, component_server in server.component_servers.items():
+            print(f"  - {prefix}: {component_server.name}")
 
     await server.run()
 

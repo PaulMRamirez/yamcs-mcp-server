@@ -189,7 +189,7 @@ class TestFastMCPIntegration:
             # For testing, we can verify the server and components are created
             assert server.mcp is not None
             assert server.mcp.name == "YamcsServer"
-            assert len(server.components) > 0  # Components were initialized
+            assert len(server.component_servers) > 0  # Component servers were initialized
 
             # Each component should also have health check capability
             # through their base class implementation
@@ -275,12 +275,12 @@ class TestFastMCPIntegration:
         integration_config.yamcs.enable_storage = False
 
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client), \
-             patch("yamcs_mcp.server.MDBComponent") as mock_mdb_class, \
-             patch("yamcs_mcp.server.ObjectStorageComponent") as mock_storage_class:
+             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class, \
+             patch("yamcs_mcp.server.StorageServer") as mock_storage_class:
 
             YamcsMCPServer(integration_config)
 
-            # Verify disabled components were not created
+            # Verify disabled servers were not created
             mock_mdb_class.assert_not_called()
             mock_storage_class.assert_not_called()
 

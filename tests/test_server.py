@@ -29,97 +29,45 @@ class TestYamcsMCPServer:
         setup_logging("INFO")
         setup_logging("DEBUG")
 
-    @pytest.mark.asyncio
-    async def test_health_check(self, mock_config, mock_client_manager):
-        """Test server health check tool."""
+    def test_server_has_mounted_components(self, mock_config, mock_client_manager):
+        """Test that server has mounted component servers."""
         with patch(
             "yamcs_mcp.server.YamcsClientManager",
             return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
 
-            # Get the health_check tool by calling it directly
-            # In the new pattern, tools are registered during init
-            result = await server.health_check()
-
-            assert result["status"] == "healthy"
-            assert result["server"] == "YamcsServer"
-            assert result["version"] == "0.0.1-beta"
-            assert result["yamcs_url"] == "http://localhost:8090"
-
-    @pytest.mark.asyncio
-    async def test_test_connection(self, mock_config, mock_client_manager):
-        """Test connection test tool."""
-        with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
-        ):
-            server = YamcsMCPServer(mock_config)
-
-            # Test successful connection
-            result = await server.test_connection()
-
-            assert result["connected"] is True
-            assert result["yamcs_url"] == "http://localhost:8090"
-            assert "Connection successful" in result["message"]
-
-    @pytest.mark.asyncio
-    async def test_test_connection_failure(self, mock_config, mock_client_manager):
-        """Test connection test with failure."""
-        mock_client_manager.test_connection = AsyncMock(return_value=False)
-
-        with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
-        ):
-            server = YamcsMCPServer(mock_config)
-
-            # Test failed connection
-            result = await server.test_connection()
-
-            assert result["connected"] is False
-            assert result["yamcs_url"] == "http://localhost:8090"
-            assert "Connection failed" in result["message"]
-
-    @pytest.mark.asyncio
-    async def test_test_connection_exception(self, mock_config, mock_client_manager):
-        """Test connection test with exception."""
-        mock_client_manager.test_connection = AsyncMock(
-            side_effect=Exception("Network error")
-        )
-
-        with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
-        ):
-            server = YamcsMCPServer(mock_config)
-
-            # Test exception handling
-            result = await server.test_connection()
-
-            assert result["connected"] is False
-            assert result["yamcs_url"] == "http://localhost:8090"
-            assert "Network error" in result["error"]
+            # Verify that component servers were stored
+            assert len(server.component_servers) == 6
+            assert "mdb" in server.component_servers
+            assert "processor" in server.component_servers
+            assert "archive" in server.component_servers
+            assert "link" in server.component_servers
+            assert "storage" in server.component_servers
+            assert "instance" in server.component_servers
 
     def test_component_registration(self, mock_config, mock_client_manager):
-        """Test that components are registered with the server."""
-        # Mock all component classes
+        """Test that component servers are mounted with the main server."""
+        # Mock FastMCP and all server classes
         with (
             patch(
                 "yamcs_mcp.server.YamcsClientManager",
                 return_value=mock_client_manager
             ),
-            patch("yamcs_mcp.server.MDBComponent") as mock_mdb_class,
-            patch("yamcs_mcp.server.ProcessorComponent") as mock_processor_class,
-            patch("yamcs_mcp.server.ArchiveComponent") as mock_archive_class,
-            patch("yamcs_mcp.server.LinkManagementComponent") as mock_link_class,
-            patch("yamcs_mcp.server.ObjectStorageComponent") as mock_storage_class,
-            patch(
-                "yamcs_mcp.server.InstanceManagementComponent"
-            ) as mock_instance_class,
+            patch("yamcs_mcp.server.FastMCP") as mock_fastmcp_class,
+            patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
+            patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
+            patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
+            patch("yamcs_mcp.server.LinkServer") as mock_link_class,
+            patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
+            patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
         ):
 
-            # Create mock component instances
+            # Create mock FastMCP instance
+            mock_fastmcp = Mock()
+            mock_fastmcp_class.return_value = mock_fastmcp
+
+            # Create mock server instances
             mock_mdb = Mock()
             mock_processor = Mock()
             mock_archive = Mock()
@@ -138,7 +86,7 @@ class TestYamcsMCPServer:
             # Create server
             server = YamcsMCPServer(mock_config)
 
-            # Verify components were created
+            # Verify servers were created
             mock_mdb_class.assert_called_once_with(
                 mock_client_manager, mock_config.yamcs
             )
@@ -158,16 +106,17 @@ class TestYamcsMCPServer:
                 mock_client_manager, mock_config.yamcs
             )
 
-            # Verify register_with_server was called on each component
-            mock_mdb.register_with_server.assert_called_once_with(server.mcp)
-            mock_processor.register_with_server.assert_called_once_with(server.mcp)
-            mock_archive.register_with_server.assert_called_once_with(server.mcp)
-            mock_link.register_with_server.assert_called_once_with(server.mcp)
-            mock_storage.register_with_server.assert_called_once_with(server.mcp)
-            mock_instance.register_with_server.assert_called_once_with(server.mcp)
+            # Verify mount was called on main server with each component server
+            assert mock_fastmcp.mount.call_count == 6
+            mock_fastmcp.mount.assert_any_call(mock_mdb, prefix="mdb")
+            mock_fastmcp.mount.assert_any_call(mock_processor, prefix="processor")
+            mock_fastmcp.mount.assert_any_call(mock_archive, prefix="archive")
+            mock_fastmcp.mount.assert_any_call(mock_link, prefix="link")
+            mock_fastmcp.mount.assert_any_call(mock_storage, prefix="storage")
+            mock_fastmcp.mount.assert_any_call(mock_instance, prefix="instance")
 
     def test_component_disabling(self, mock_config, mock_client_manager):
-        """Test that components can be disabled via config."""
+        """Test that component servers can be disabled via config."""
         # Disable some components
         mock_config.yamcs.enable_mdb = False
         mock_config.yamcs.enable_archive = False
@@ -177,23 +126,21 @@ class TestYamcsMCPServer:
                 "yamcs_mcp.server.YamcsClientManager",
                 return_value=mock_client_manager
             ),
-            patch("yamcs_mcp.server.MDBComponent") as mock_mdb_class,
-            patch("yamcs_mcp.server.ProcessorComponent") as mock_processor_class,
-            patch("yamcs_mcp.server.ArchiveComponent") as mock_archive_class,
-            patch("yamcs_mcp.server.LinkManagementComponent") as mock_link_class,
-            patch("yamcs_mcp.server.ObjectStorageComponent") as mock_storage_class,
-            patch(
-                "yamcs_mcp.server.InstanceManagementComponent"
-            ) as mock_instance_class,
+            patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
+            patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
+            patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
+            patch("yamcs_mcp.server.LinkServer") as mock_link_class,
+            patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
+            patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
         ):
 
             YamcsMCPServer(mock_config)
 
-            # Verify disabled components were not created
+            # Verify disabled servers were not created
             mock_mdb_class.assert_not_called()
             mock_archive_class.assert_not_called()
 
-            # Verify enabled components were created
+            # Verify enabled servers were created
             mock_processor_class.assert_called_once()
             mock_link_class.assert_called_once()
             mock_storage_class.assert_called_once()

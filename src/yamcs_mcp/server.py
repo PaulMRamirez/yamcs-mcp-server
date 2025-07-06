@@ -12,14 +12,15 @@ if TYPE_CHECKING:
 from rich.console import Console
 
 from .client import YamcsClientManager
-from .components.archive import ArchiveComponent
-from .components.base import BaseYamcsComponent
-from .components.instances import InstanceManagementComponent
-from .components.links import LinkManagementComponent
-from .components.mdb import MDBComponent
-from .components.processor import ProcessorComponent
-from .components.storage import ObjectStorageComponent
 from .config import Config
+from .servers import (
+    ArchiveServer,
+    InstanceServer,
+    LinkServer,
+    MDBServer,
+    ProcessorServer,
+    StorageServer,
+)
 
 
 def setup_logging(log_level: str = "INFO") -> None:
@@ -75,49 +76,49 @@ class YamcsMCPServer:
         self._register_server_tools()
 
     def _initialize_components(self) -> None:
-        """Initialize and compose all enabled components."""
-        self.logger.info("Initializing Yamcs MCP components")
+        """Initialize and compose all enabled component servers."""
+        self.logger.info("Initializing Yamcs MCP component servers")
 
-        # Store components for reference
-        self.components: list[BaseYamcsComponent] = []
+        # Store component servers for reference
+        self.component_servers: dict[str, FastMCP] = {}
 
         if self.config.yamcs.enable_mdb:
-            self.logger.info("Enabling MDB component")
-            mdb = MDBComponent(self.client_manager, self.config.yamcs)
-            self.components.append(mdb)
-            mdb.register_with_server(self.mcp)
+            self.logger.info("Mounting MDB server")
+            mdb_server = MDBServer(self.client_manager, self.config.yamcs)
+            self.component_servers["mdb"] = mdb_server
+            self.mcp.mount(mdb_server, prefix="mdb")
 
         if self.config.yamcs.enable_processor:
-            self.logger.info("Enabling Processor component")
-            processor = ProcessorComponent(self.client_manager, self.config.yamcs)
-            self.components.append(processor)
-            processor.register_with_server(self.mcp)
+            self.logger.info("Mounting Processor server")
+            processor_server = ProcessorServer(self.client_manager, self.config.yamcs)
+            self.component_servers["processor"] = processor_server
+            self.mcp.mount(processor_server, prefix="processor")
 
         if self.config.yamcs.enable_archive:
-            self.logger.info("Enabling Archive component")
-            archive = ArchiveComponent(self.client_manager, self.config.yamcs)
-            self.components.append(archive)
-            archive.register_with_server(self.mcp)
+            self.logger.info("Mounting Archive server")
+            archive_server = ArchiveServer(self.client_manager, self.config.yamcs)
+            self.component_servers["archive"] = archive_server
+            self.mcp.mount(archive_server, prefix="archive")
 
         if self.config.yamcs.enable_links:
-            self.logger.info("Enabling Link Management component")
-            links = LinkManagementComponent(self.client_manager, self.config.yamcs)
-            self.components.append(links)
-            links.register_with_server(self.mcp)
+            self.logger.info("Mounting Link Management server")
+            link_server = LinkServer(self.client_manager, self.config.yamcs)
+            self.component_servers["link"] = link_server
+            self.mcp.mount(link_server, prefix="link")
 
         if self.config.yamcs.enable_storage:
-            self.logger.info("Enabling Object Storage component")
-            storage = ObjectStorageComponent(self.client_manager, self.config.yamcs)
-            self.components.append(storage)
-            storage.register_with_server(self.mcp)
+            self.logger.info("Mounting Object Storage server")
+            storage_server = StorageServer(self.client_manager, self.config.yamcs)
+            self.component_servers["storage"] = storage_server
+            self.mcp.mount(storage_server, prefix="storage")
 
         if self.config.yamcs.enable_instances:
-            self.logger.info("Enabling Instance Management component")
-            instances = InstanceManagementComponent(self.client_manager, self.config.yamcs)
-            self.components.append(instances)
-            instances.register_with_server(self.mcp)
+            self.logger.info("Mounting Instance Management server")
+            instance_server = InstanceServer(self.client_manager, self.config.yamcs)
+            self.component_servers["instance"] = instance_server
+            self.mcp.mount(instance_server, prefix="instance")
 
-        self.logger.info(f"Initialized {len(self.components)} components")
+        self.logger.info(f"Mounted {len(self.component_servers)} component servers")
 
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""

@@ -1,36 +1,35 @@
-"""Mission Database (MDB) component for Yamcs MCP Server."""
+"""Mission Database (MDB) server for Yamcs MCP."""
 
 from typing import Any
 
 from ..client import YamcsClientManager
+from ..components.base_server import BaseYamcsServer
 from ..config import YamcsConfig
-from .base import BaseYamcsComponent
 
 
-class MDBComponent(BaseYamcsComponent):
-    """MDB component for accessing Yamcs Mission Database."""
+class MDBServer(BaseYamcsServer):
+    """MDB server for accessing Yamcs Mission Database."""
 
     def __init__(
         self,
         client_manager: YamcsClientManager,
         config: YamcsConfig,
     ) -> None:
-        """Initialize MDB component.
+        """Initialize MDB server.
 
         Args:
             client_manager: Yamcs client manager
             config: Yamcs configuration
         """
         super().__init__("MDB", client_manager, config)
+        self._register_mdb_tools()
+        self._register_mdb_resources()
 
-    def register_with_server(self, server: Any) -> None:
-        """Register MDB tools and resources with the server."""
-
-        # Store reference to self for use in closures
-        component = self
-
-        @server.tool()
-        async def mdb_list_parameters(
+    def _register_mdb_tools(self) -> None:
+        """Register MDB-specific tools."""
+        
+        @self.tool()
+        async def list_parameters(
             instance: str | None = None,
             system: str | None = None,
             search: str | None = None,
@@ -46,8 +45,8 @@ class MDBComponent(BaseYamcsComponent):
                 dict: List of parameters with their details
             """
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(instance or component.config.instance)
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(instance or self.config.instance)
 
                     # Get parameters with optional filtering
                     parameters = []
@@ -61,21 +60,21 @@ class MDBComponent(BaseYamcsComponent):
                         parameters.append({
                             "name": param.name,
                             "qualified_name": param.qualified_name,
-                            "type": param.type,  # This is already a string like "float", "int", etc.
+                            "type": param.type,
                             "units": param.units,
                             "description": param.description,
                         })
 
                     return {
-                        "instance": instance or component.config.instance,
+                        "instance": instance or self.config.instance,
                         "count": len(parameters),
                         "parameters": parameters[:100],  # Limit to first 100
                     }
             except Exception as e:
-                return component._handle_error("mdb_list_parameters", e)
+                return self._handle_error("list_parameters", e)
 
-        @server.tool()
-        async def mdb_get_parameter(
+        @self.tool()
+        async def get_parameter(
             parameter: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -89,8 +88,8 @@ class MDBComponent(BaseYamcsComponent):
                 dict: Parameter details
             """
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(instance or component.config.instance)
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(instance or self.config.instance)
 
                     # Get parameter info
                     param = mdb_client.get_parameter(parameter)
@@ -98,17 +97,17 @@ class MDBComponent(BaseYamcsComponent):
                     return {
                         "name": param.name,
                         "qualified_name": param.qualified_name,
-                        "type": param.type,  # This is a string like "float", "int", etc.
+                        "alias": param.alias,
+                        "type": param.type,
                         "units": param.units,
                         "description": param.description,
                         "data_source": param.data_source,
-                        "aliases": [{"name": a.name, "namespace": a.namespace} for a in param.aliases_dict.values()] if param.aliases_dict else [],
                     }
             except Exception as e:
-                return component._handle_error("mdb_get_parameter", e)
+                return self._handle_error("get_parameter", e)
 
-        @server.tool()
-        async def mdb_list_commands(
+        @self.tool()
+        async def list_commands(
             instance: str | None = None,
             system: str | None = None,
             search: str | None = None,
@@ -124,8 +123,8 @@ class MDBComponent(BaseYamcsComponent):
                 dict: List of commands with their details
             """
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(instance or component.config.instance)
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(instance or self.config.instance)
 
                     # Get commands with optional filtering
                     commands = []
@@ -144,15 +143,15 @@ class MDBComponent(BaseYamcsComponent):
                         })
 
                     return {
-                        "instance": instance or component.config.instance,
+                        "instance": instance or self.config.instance,
                         "count": len(commands),
                         "commands": commands[:100],  # Limit to first 100
                     }
             except Exception as e:
-                return component._handle_error("mdb_list_commands", e)
+                return self._handle_error("list_commands", e)
 
-        @server.tool()
-        async def mdb_get_command(
+        @self.tool()
+        async def get_command(
             command: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -163,24 +162,24 @@ class MDBComponent(BaseYamcsComponent):
                 instance: Yamcs instance (uses default if not specified)
 
             Returns:
-                dict: Command details including arguments
+                dict: Command details
             """
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(instance or component.config.instance)
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(instance or self.config.instance)
 
                     # Get command info
                     cmd = mdb_client.get_command(command)
 
-                    # Extract argument info
+                    # Extract arguments
                     arguments = []
-                    if cmd.argument:
-                        for arg in cmd.argument:
+                    if hasattr(cmd, 'arguments'):
+                        for arg in cmd.arguments:
                             arguments.append({
                                 "name": arg.name,
                                 "description": arg.description,
-                                "type": arg.type,
-                                "initial_value": arg.initial_value,
+                                "type": getattr(arg, 'type', 'unknown'),
+                                "required": getattr(arg, 'required', True),
                             })
 
                     return {
@@ -189,13 +188,12 @@ class MDBComponent(BaseYamcsComponent):
                         "description": cmd.description,
                         "abstract": cmd.abstract,
                         "arguments": arguments,
-                        "alias": [{"name": a.name, "namespace": a.namespace} for a in cmd.alias],
                     }
             except Exception as e:
-                return component._handle_error("mdb_get_command", e)
+                return self._handle_error("get_command", e)
 
-        @server.tool()
-        async def mdb_list_space_systems(
+        @self.tool()
+        async def list_space_systems(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List space systems from the Mission Database.
@@ -204,77 +202,96 @@ class MDBComponent(BaseYamcsComponent):
                 instance: Yamcs instance (uses default if not specified)
 
             Returns:
-                dict: Space system hierarchy
+                dict: List of space systems
             """
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(instance or component.config.instance)
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(instance or self.config.instance)
 
                     # Get space systems
-                    systems = []
+                    space_systems = []
                     for system in mdb_client.list_space_systems():
-                        systems.append({
+                        space_systems.append({
                             "name": system.name,
                             "qualified_name": system.qualified_name,
-                            "description": system.description,
+                            "description": getattr(system, 'description', None),
                         })
 
                     return {
-                        "instance": instance or component.config.instance,
-                        "count": len(systems),
-                        "space_systems": systems,
+                        "instance": instance or self.config.instance,
+                        "count": len(space_systems),
+                        "space_systems": space_systems,
                     }
             except Exception as e:
-                return component._handle_error("mdb_list_space_systems", e)
+                return self._handle_error("list_space_systems", e)
 
-        # Register resources
-        @server.resource("mdb://parameters")
-        async def list_all_parameters() -> str:
-            """List all parameters in the MDB."""
-            # Duplicate the logic instead of calling the tool
+    def _register_mdb_resources(self) -> None:
+        """Register MDB-specific resources."""
+        
+        @self.resource("mdb://parameters")
+        async def get_parameters_summary() -> str:
+            """Get a summary of available parameters."""
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(component.config.instance)
-
-                    # Get parameters
-                    parameters = []
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(self.config.instance)
+                    
+                    # Count parameters by system
+                    systems: dict[str, int] = {}
+                    total = 0
+                    
                     for param in mdb_client.list_parameters():
-                        parameters.append({
-                            "qualified_name": param.qualified_name,
-                            "type": param.type,
-                        })
-
-                    lines = [f"Parameters in {component.config.instance} ({len(parameters)} total):"]
-                    for param in parameters[:50]:  # Show first 50
-                        lines.append(f"  - {param['qualified_name']} ({param['type']})")
-                    if len(parameters) > 50:
-                        lines.append(f"  ... and {len(parameters) - 50} more")
-
+                        total += 1
+                        # Extract system from qualified name
+                        parts = param.qualified_name.split('/')
+                        if len(parts) > 1:
+                            system = parts[1]
+                            systems[system] = systems.get(system, 0) + 1
+                    
+                    # Build summary
+                    lines = [
+                        f"Mission Database Parameters Summary ({self.config.instance}):",
+                        f"Total Parameters: {total}",
+                        "",
+                        "Parameters by System:"
+                    ]
+                    
+                    for system, count in sorted(systems.items()):
+                        lines.append(f"  {system}: {count}")
+                    
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"
 
-        @server.resource("mdb://commands")
-        async def list_all_commands() -> str:
-            """List all commands in the MDB."""
-            # Duplicate the logic instead of calling the tool
+        @self.resource("mdb://commands")
+        async def get_commands_summary() -> str:
+            """Get a summary of available commands."""
             try:
-                async with component.client_manager.get_client() as client:
-                    mdb_client = client.get_mdb(component.config.instance)
-
-                    # Get commands
-                    commands = []
+                async with self.client_manager.get_client() as client:
+                    mdb_client = client.get_mdb(self.config.instance)
+                    
+                    # Count commands by system
+                    systems: dict[str, int] = {}
+                    total = 0
+                    
                     for cmd in mdb_client.list_commands():
-                        commands.append({
-                            "qualified_name": cmd.qualified_name,
-                        })
-
-                    lines = [f"Commands in {component.config.instance} ({len(commands)} total):"]
-                    for cmd in commands[:50]:  # Show first 50
-                        lines.append(f"  - {cmd['qualified_name']}")
-                    if len(commands) > 50:
-                        lines.append(f"  ... and {len(commands) - 50} more")
-
+                        total += 1
+                        # Extract system from qualified name
+                        parts = cmd.qualified_name.split('/')
+                        if len(parts) > 1:
+                            system = parts[1]
+                            systems[system] = systems.get(system, 0) + 1
+                    
+                    # Build summary
+                    lines = [
+                        f"Mission Database Commands Summary ({self.config.instance}):",
+                        f"Total Commands: {total}",
+                        "",
+                        "Commands by System:"
+                    ]
+                    
+                    for system, count in sorted(systems.items()):
+                        lines.append(f"  {system}: {count}")
+                    
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"

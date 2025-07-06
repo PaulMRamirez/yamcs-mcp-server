@@ -1,19 +1,5 @@
 """Yamcs MCP Server components."""
 
-from .archive import ArchiveComponent
-from .base import BaseYamcsComponent
-from .instances import InstanceManagementComponent
-from .links import LinkManagementComponent
-from .mdb import MDBComponent
-from .processor import ProcessorComponent
-from .storage import ObjectStorageComponent
+from .base_server import BaseYamcsServer
 
-__all__ = [
-    "ArchiveComponent",
-    "BaseYamcsComponent",
-    "InstanceManagementComponent",
-    "LinkManagementComponent",
-    "MDBComponent",
-    "ObjectStorageComponent",
-    "ProcessorComponent",
-]
+__all__ = ["BaseYamcsServer"]

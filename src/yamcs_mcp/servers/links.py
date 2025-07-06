@@ -1,36 +1,35 @@
-"""Link Management component for Yamcs MCP Server."""
+"""Link Management server for Yamcs MCP."""
 
 from typing import Any
 
 from ..client import YamcsClientManager
+from ..components.base_server import BaseYamcsServer
 from ..config import YamcsConfig
-from .base import BaseYamcsComponent
 
 
-class LinkManagementComponent(BaseYamcsComponent):
-    """Link Management component for data link operations."""
+class LinkServer(BaseYamcsServer):
+    """Link server for data link operations."""
 
     def __init__(
         self,
         client_manager: YamcsClientManager,
         config: YamcsConfig,
     ) -> None:
-        """Initialize Link Management component.
+        """Initialize Link server.
 
         Args:
             client_manager: Yamcs client manager
             config: Yamcs configuration
         """
-        super().__init__("LinkManagement", client_manager, config)
+        super().__init__("Links", client_manager, config)
+        self._register_link_tools()
+        self._register_link_resources()
 
-    def register_with_server(self, server: Any) -> None:
-        """Register Link Management tools and resources with the server."""
-
-        # Store reference to self for use in closures
-        component = self
-
-        @server.tool()
-        async def link_list_links(
+    def _register_link_tools(self) -> None:
+        """Register link-specific tools."""
+        
+        @self.tool()
+        async def list_links(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List all data links.
@@ -42,9 +41,9 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: List of links with their status
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     links = []
-                    for link in client.list_links(instance or component.config.instance):
+                    for link in client.list_links(instance or self.config.instance):
                         links.append({
                             "name": link.name,
                             "type": getattr(link, 'class_name', None),
@@ -56,15 +55,15 @@ class LinkManagementComponent(BaseYamcsComponent):
                         })
 
                     return {
-                        "instance": instance or component.config.instance,
+                        "instance": instance or self.config.instance,
                         "count": len(links),
                         "links": links,
                     }
             except Exception as e:
-                return component._handle_error("link_list_links", e)
+                return self._handle_error("list_links", e)
 
-        @server.tool()
-        async def link_get_status(
+        @self.tool()
+        async def get_status(
             link: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -78,9 +77,9 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: Link status information
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     link_client = client.get_link(
-                        instance=instance or component.config.instance,
+                        instance=instance or self.config.instance,
                         link=link,
                     )
                     
@@ -103,10 +102,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "actions": getattr(link_info, 'actions', []),
                     }
             except Exception as e:
-                return component._handle_error("link_get_status", e)
+                return self._handle_error("get_status", e)
 
-        @server.tool()
-        async def link_enable_link(
+        @self.tool()
+        async def enable_link(
             link: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -120,9 +119,9 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: Operation result
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     link_obj = client.get_link(
-                        instance=instance or component.config.instance,
+                        instance=instance or self.config.instance,
                         link=link,
                     )
 
@@ -136,10 +135,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "message": f"Link '{link}' enabled successfully",
                     }
             except Exception as e:
-                return component._handle_error("link_enable_link", e)
+                return self._handle_error("enable_link", e)
 
-        @server.tool()
-        async def link_disable_link(
+        @self.tool()
+        async def disable_link(
             link: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -153,9 +152,9 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: Operation result
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     link_obj = client.get_link(
-                        instance=instance or component.config.instance,
+                        instance=instance or self.config.instance,
                         link=link,
                     )
 
@@ -169,10 +168,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "message": f"Link '{link}' disabled successfully",
                     }
             except Exception as e:
-                return component._handle_error("link_disable_link", e)
+                return self._handle_error("disable_link", e)
 
-        @server.tool()
-        async def link_reset_link(
+        @self.tool()
+        async def reset_link(
             link: str,
             instance: str | None = None,
         ) -> dict[str, Any]:
@@ -186,9 +185,9 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: Operation result
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     link_obj = client.get_link(
-                        instance=instance or component.config.instance,
+                        instance=instance or self.config.instance,
                         link=link,
                     )
 
@@ -202,10 +201,10 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "message": f"Link '{link}' counters reset successfully",
                     }
             except Exception as e:
-                return component._handle_error("link_reset_link", e)
+                return self._handle_error("reset_link", e)
 
-        @server.tool()
-        async def link_get_statistics(
+        @self.tool()
+        async def get_statistics(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """Get statistics for all links.
@@ -217,7 +216,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                 dict: Link statistics summary
             """
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     stats: dict[str, Any] = {
                         "total_links": 0,
                         "enabled_links": 0,
@@ -229,7 +228,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "links": [],
                     }
 
-                    for link in client.list_links(instance or component.config.instance):
+                    for link in client.list_links(instance or self.config.instance):
                         stats["total_links"] += 1
 
                         if not getattr(link, 'enabled', True):
@@ -253,21 +252,22 @@ class LinkManagementComponent(BaseYamcsComponent):
                         })
 
                     return {
-                        "instance": instance or component.config.instance,
+                        "instance": instance or self.config.instance,
                         "statistics": stats,
                     }
             except Exception as e:
-                return component._handle_error("link_get_statistics", e)
+                return self._handle_error("get_statistics", e)
 
-        # Register resources
-        @server.resource("link://status")
+    def _register_link_resources(self) -> None:
+        """Register link-specific resources."""
+        
+        @self.resource("link://status")
         async def get_all_links_status() -> str:
             """Get current status of all links."""
-            # Duplicate the logic instead of calling the tool
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     links = []
-                    for link in client.list_links(component.config.instance):
+                    for link in client.list_links(self.config.instance):
                         links.append({
                             "name": link.name,
                             "type": getattr(link, 'class_name', 'unknown'),
@@ -277,7 +277,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                             "data_out_count": getattr(link, 'out_count', 0),
                         })
 
-                    lines = [f"Links in {component.config.instance} ({len(links)} total):"]
+                    lines = [f"Links in {self.config.instance} ({len(links)} total):"]
                     for link in links:
                         status = "DISABLED" if link["disabled"] else link["status"]
                         type_info = f" ({link['type']})" if link['type'] != 'unknown' else ""
@@ -290,12 +290,11 @@ class LinkManagementComponent(BaseYamcsComponent):
             except Exception as e:
                 return f"Error: {e!s}"
 
-        @server.resource("link://statistics")
+        @self.resource("link://statistics")
         async def get_link_statistics() -> str:
             """Get link performance statistics."""
-            # Duplicate the logic instead of calling the tool
             try:
-                async with component.client_manager.get_client() as client:
+                async with self.client_manager.get_client() as client:
                     stats = {
                         "total_links": 0,
                         "enabled_links": 0,
@@ -306,7 +305,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                         "total_data_out": 0,
                     }
 
-                    for link in client.list_links(component.config.instance):
+                    for link in client.list_links(self.config.instance):
                         stats["total_links"] += 1
 
                         if not getattr(link, 'enabled', True):
@@ -323,7 +322,7 @@ class LinkManagementComponent(BaseYamcsComponent):
                         stats["total_data_out"] += getattr(link, 'out_count', 0) or 0
 
                     lines = [
-                        f"Link Statistics for {component.config.instance}:",
+                        f"Link Statistics for {self.config.instance}:",
                         f"  Total Links: {stats['total_links']}",
                         f"  Enabled: {stats['enabled_links']}",
                         f"  Disabled: {stats['disabled_links']}",
