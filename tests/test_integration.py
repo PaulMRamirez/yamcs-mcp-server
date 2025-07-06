@@ -150,8 +150,6 @@ class TestFastMCPIntegration:
                 "link_get_status",
                 "link_enable_link",
                 "link_disable_link",
-                "link_reset_link",
-                "link_get_statistics",
 
                 # Storage tools
                 "object_buckets",
@@ -218,7 +216,6 @@ class TestFastMCPIntegration:
                 "mdb://commands",
                 "processor://status/{processor}",
                 "link://status",
-                "link://statistics",
                 "object://buckets",
                 "object://objects/{bucket}",
                 "instance://list",
