@@ -126,7 +126,7 @@ class LinkServer(BaseYamcsServer):
                     )
 
                     # Enable the link
-                    link_obj.enable()
+                    link_obj.enable_link()
 
                     return {
                         "success": True,
@@ -159,7 +159,7 @@ class LinkServer(BaseYamcsServer):
                     )
 
                     # Disable the link
-                    link_obj.disable()
+                    link_obj.disable_link()
 
                     return {
                         "success": True,
@@ -191,8 +191,37 @@ class LinkServer(BaseYamcsServer):
                         link=link,
                     )
 
-                    # Reset counters
-                    link_obj.reset_counters()
+                    # Reset counters - this may not be available in all Yamcs versions
+                    # Try to run reset action if available
+                    try:
+                        if hasattr(link_obj, 'reset_counters'):
+                            link_obj.reset_counters()
+                        elif hasattr(link_obj, 'run_action'):
+                            # Try running a reset action if it exists
+                            link_info = link_obj.get_info()
+                            if hasattr(link_info, 'actions') and 'resetCounters' in link_info.actions:
+                                link_obj.run_action('resetCounters')
+                            else:
+                                return {
+                                    "error": True,
+                                    "message": "Reset counters operation not available for this link",
+                                    "operation": "reset",
+                                    "component": self.component_name,
+                                }
+                        else:
+                            return {
+                                "error": True,
+                                "message": "Reset counters operation not supported",
+                                "operation": "reset",
+                                "component": self.component_name,
+                            }
+                    except AttributeError:
+                        return {
+                            "error": True,
+                            "message": "Reset counters operation not available",
+                            "operation": "reset",
+                            "component": self.component_name,
+                        }
 
                     return {
                         "success": True,
