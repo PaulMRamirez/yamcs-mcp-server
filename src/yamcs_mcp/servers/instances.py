@@ -70,7 +70,16 @@ class InstanceServer(BaseYamcsServer):
             """
             try:
                 async with self.client_manager.get_client() as client:
-                    inst = client.get_instance(instance or self.config.instance)
+                    # Find the instance by name
+                    instance_name = instance or self.config.instance
+                    inst = None
+                    for i in client.list_instances():
+                        if i.name == instance_name:
+                            inst = i
+                            break
+                    
+                    if not inst:
+                        return self._handle_error("get_instance", Exception(f"Instance '{instance_name}' not found"))
                     
                     # Count processors for this instance
                     processor_count = len(list(client.list_processors(inst.name)))
@@ -107,18 +116,18 @@ class InstanceServer(BaseYamcsServer):
             """
             try:
                 async with self.client_manager.get_client() as client:
-                    inst = client.get_instance(instance or self.config.instance)
+                    instance_name = instance or self.config.instance
                     
-                    # Perform the requested action
+                    # Perform the requested action using client methods
                     if action == "start":
-                        inst.start()
-                        message = f"Instance '{inst.name}' started"
+                        client.start_instance(instance_name)
+                        message = f"Instance '{instance_name}' started"
                     elif action == "stop":
-                        inst.stop()
-                        message = f"Instance '{inst.name}' stopped"
+                        client.stop_instance(instance_name)
+                        message = f"Instance '{instance_name}' stopped"
                     elif action == "restart":
-                        inst.restart()
-                        message = f"Instance '{inst.name}' restarted"
+                        client.restart_instance(instance_name)
+                        message = f"Instance '{instance_name}' restarted"
                     else:
                         return {
                             "error": True,
@@ -127,7 +136,7 @@ class InstanceServer(BaseYamcsServer):
                     
                     return {
                         "success": True,
-                        "instance": inst.name,
+                        "instance": instance_name,
                         "action": action,
                         "message": message,
                     }
@@ -195,7 +204,15 @@ class InstanceServer(BaseYamcsServer):
             """Get information about the current configured instance."""
             try:
                 async with self.client_manager.get_client() as client:
-                    inst = client.get_instance(self.config.instance)
+                    # Find the instance by name
+                    inst = None
+                    for i in client.list_instances():
+                        if i.name == self.config.instance:
+                            inst = i
+                            break
+                    
+                    if not inst:
+                        return f"Error: Instance '{self.config.instance}' not found"
                     
                     lines = [
                         f"Current Instance: {inst.name}",
