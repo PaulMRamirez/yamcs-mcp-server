@@ -61,24 +61,26 @@ uv run ruff format .
 
 ## Architecture Overview
 
-### Component-Based Design
-The server uses FastMCP's composition pattern with six main components, each handling a specific Yamcs subsystem:
+### Server Composition Pattern
+The server uses FastMCP's server composition pattern where each Yamcs subsystem is implemented as an independent FastMCP server that gets mounted to the main server:
 
-1. **BaseYamcsComponent** (`src/yamcs_mcp/components/base.py`)
-   - Abstract base class defining the component interface
-   - Key method: `register_with_server(server)` - components register their tools/resources with the FastMCP server
-   - Components don't inherit from FastMCP, they compose with it
+1. **BaseYamcsServer** (`src/yamcs_mcp/components/base_server.py`)
+   - Base class extending FastMCP for all component servers
+   - Provides common functionality like health checks and error handling
+   - Each component server is a full FastMCP instance
 
-2. **Component Registration Pattern**
-   - Each component implements `register_with_server(server)`
-   - Inside this method, tools are defined as nested functions decorated with `@server.tool()`
-   - Resources are defined with `@server.resource()`
-   - Tools are async functions that interact with Yamcs via the client manager
+2. **Component Servers** (in `src/yamcs_mcp/servers/`)
+   - **MDBServer** - Mission Database operations
+   - **LinkServer** - Data link management
+   - **ArchiveServer** - Historical data access
+   - **ProcessorServer** - Processor control
+   - **InstanceServer** - Instance management
+   - **StorageServer** - Object storage operations
 
 3. **Server Initialization Flow** (`src/yamcs_mcp/server.py`)
-   - Creates FastMCP instance
-   - Instantiates enabled components based on config
-   - Calls `register_with_server()` on each component
+   - Creates main FastMCP instance
+   - Instantiates enabled component servers based on config
+   - Mounts each server with a prefix using `server.mount(component_server, prefix="prefix")`
    - Runs the server with `run_async()` (not `run()` to avoid asyncio conflicts)
 
 ### Key Architectural Decisions
@@ -100,22 +102,29 @@ The server uses FastMCP's composition pattern with six main components, each han
    - YamcsClientManager provides connection pooling and lifecycle management
    - Uses async context managers for proper cleanup
 
-### Component Structure
+### Server Structure
 
-Each component follows this pattern:
+Each component server follows this pattern:
 ```python
-class ComponentName(BaseYamcsComponent):
-    def register_with_server(self, server: Any) -> None:
-        @server.tool()
+class ComponentServer(BaseYamcsServer):
+    def __init__(self, client_manager, config):
+        super().__init__("ComponentName", client_manager, config)
+        self._register_tools()
+        
+    def _register_tools(self):
+        @self.tool()
         async def tool_name(param: str) -> dict[str, Any]:
             # Implementation using self.client_manager
             pass
 ```
 
+Tools are prefixed when mounted, e.g., `mdb_list_parameters`, `link_list_links`
+
 ### Critical Files
 
-- `src/yamcs_mcp/server.py` - Main server orchestration and component composition
-- `src/yamcs_mcp/components/base.py` - Component interface definition
+- `src/yamcs_mcp/server.py` - Main server orchestration and component mounting
+- `src/yamcs_mcp/components/base_server.py` - Base class for all component servers
+- `src/yamcs_mcp/servers/` - Individual component server implementations
 - `src/yamcs_mcp/client.py` - Yamcs connection management
 - `src/yamcs_mcp/config.py` - Configuration schema and validation
 
@@ -147,20 +156,26 @@ Uses uv's `--directory` flag for proper project resolution:
    - Use `--directory` flag in args, not `cwd` parameter
    - Ensure uv is in PATH or use full path
 
-3. **Abstract method errors**
-   - All components must implement `register_with_server(server)`
-   - Tools use `@server.tool()` not `@self.tool()`
+3. **Server composition errors**
+   - Component servers extend BaseYamcsServer which extends FastMCP
+   - Tools use `@self.tool()` since each component is a FastMCP server
+   - Main server mounts components with prefixes
 
 4. **"'str' object has no attribute 'eng_type'" in mdb_list_parameters**
    - The yamcs-python client returns `param.type` as a string (e.g., "float", "int")
    - Not as an object with `eng_type` attribute
    - Fixed by using `param.type` directly
 
-5. **Resources failing with "No active context found" or scope errors**
-   - Resources defined with `@server.resource()` need to call tool functions
-   - Tool functions defined in same `register_with_server` method are in closure scope
-   - Resources can directly call the tool functions by name (they're in the same closure)
-   - Don't use `self.tool_name()` - tools aren't class methods
+5. **Link statistics reporting incorrectly**
+   - Use `in_count`/`out_count` not `data_in_count`/`data_out_count`
+   - Link type is in `class_name` attribute, not `type`
+   - Use `enabled` attribute and convert to `disabled` as needed
+   - `get_link()` returns LinkClient, call `get_info()` for Link object
+
+6. **Instance API issues**
+   - No `get_instance()` method - use `list_instances()` and find by name
+   - Instance objects don't have `processor_count` - count with `list_processors()`
+   - Use client methods like `start_instance()`, not instance methods
 
 ### Testing Yamcs with Docker
 
@@ -173,6 +188,7 @@ This starts Yamcs with a `simulator` instance on port 8090 that includes example
 
 ## Memories
 
-- First iteration of the Yamcs MCP server focused on core architecture and component design
-- Developed with emphasis on async event loop handling and flexible component registration
-- Initial design supports demo mode and provides robust connection management for Yamcs interactions
+- Initial architecture used component registration pattern, later refactored to server composition
+- Converted all components to independent FastMCP servers mounted with prefixes
+- Fixed multiple Yamcs API misunderstandings (link attributes, instance methods)
+- Server composition provides better modularity and follows FastMCP best practices
