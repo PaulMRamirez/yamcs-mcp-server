@@ -78,47 +78,47 @@ class YamcsMCPServer:
     def _initialize_components(self) -> None:
         """Initialize and compose all enabled component servers."""
         self.logger.info("Initializing Yamcs MCP component servers")
-
-        # Store component servers for reference
-        self.component_servers: dict[str, FastMCP] = {}
+        
+        # Count mounted servers for logging
+        mounted_count = 0
 
         if self.config.yamcs.enable_mdb:
             self.logger.info("Mounting MDB server")
             mdb_server = MDBServer(self.client_manager, self.config.yamcs)
-            self.component_servers["mdb"] = mdb_server
             self.mcp.mount(mdb_server, prefix="mdb")
+            mounted_count += 1
 
         if self.config.yamcs.enable_processor:
             self.logger.info("Mounting Processor server")
             processor_server = ProcessorServer(self.client_manager, self.config.yamcs)
-            self.component_servers["processor"] = processor_server
             self.mcp.mount(processor_server, prefix="processor")
+            mounted_count += 1
 
         if self.config.yamcs.enable_archive:
             self.logger.info("Mounting Archive server")
             archive_server = ArchiveServer(self.client_manager, self.config.yamcs)
-            self.component_servers["archive"] = archive_server
             self.mcp.mount(archive_server, prefix="archive")
+            mounted_count += 1
 
         if self.config.yamcs.enable_links:
             self.logger.info("Mounting Link Management server")
             link_server = LinksServer(self.client_manager, self.config.yamcs)
-            self.component_servers["link"] = link_server
             self.mcp.mount(link_server, prefix="link")
+            mounted_count += 1
 
         if self.config.yamcs.enable_storage:
             self.logger.info("Mounting Object Storage server")
             storage_server = StorageServer(self.client_manager, self.config.yamcs)
-            self.component_servers["storage"] = storage_server
             self.mcp.mount(storage_server, prefix="storage")
+            mounted_count += 1
 
         if self.config.yamcs.enable_instances:
             self.logger.info("Mounting Instance Management server")
             instance_server = InstanceServer(self.client_manager, self.config.yamcs)
-            self.component_servers["instance"] = instance_server
             self.mcp.mount(instance_server, prefix="instance")
+            mounted_count += 1
 
-        self.logger.info(f"Mounted {len(self.component_servers)} component servers")
+        self.logger.info(f"Mounted {mounted_count} component servers")
 
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""

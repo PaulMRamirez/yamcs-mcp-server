@@ -185,7 +185,7 @@ class TestFastMCPIntegration:
             # For testing, we can verify the server and components are created
             assert server.mcp is not None
             assert server.mcp.name == "YamcsServer"
-            assert len(server.component_servers) > 0  # Component servers were initialized
+            # Component servers are mounted but not stored anymore
 
             # Each component should also have health check capability
             # through their base class implementation
