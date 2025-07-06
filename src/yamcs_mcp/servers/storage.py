@@ -29,7 +29,7 @@ class StorageServer(BaseYamcsServer):
         """Register storage-specific tools."""
         
         @self.tool()
-        async def list_buckets(
+        async def buckets(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List storage buckets.
@@ -59,10 +59,10 @@ class StorageServer(BaseYamcsServer):
                         "buckets": buckets,
                     }
             except Exception as e:
-                return self._handle_error("list_buckets", e)
+                return self._handle_error("buckets", e)
 
         @self.tool()
-        async def list_objects(
+        async def objects(
             bucket: str,
             prefix: str | None = None,
             instance: str | None = None,
@@ -108,7 +108,7 @@ class StorageServer(BaseYamcsServer):
                         "objects": objects,
                     }
             except Exception as e:
-                return self._handle_error("list_objects", e)
+                return self._handle_error("objects", e)
 
         @self.tool()
         async def get_object_info(

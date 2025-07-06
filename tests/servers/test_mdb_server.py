@@ -30,8 +30,8 @@ class TestMDBServer:
         assert hasattr(mdb_server, 'mount')
 
     @pytest.mark.asyncio
-    async def test_list_parameters_tool(self, mdb_server, mock_yamcs_client):
-        """Test the list_parameters tool functionality."""
+    async def test_parameters_tool(self, mdb_server, mock_yamcs_client):
+        """Test the parameters tool functionality."""
         # Since tools are registered during init, we can't easily test them directly
         # But we can verify the server was created correctly
         assert mdb_server.name == "YamcsMDBServer"
@@ -43,10 +43,10 @@ class TestMDBServer:
     async def test_error_handling(self, mdb_server):
         """Test error handling in MDB server."""
         # Test the inherited _handle_error method
-        error_result = mdb_server._handle_error("list_parameters", Exception("MDB error"))
+        error_result = mdb_server._handle_error("parameters", Exception("MDB error"))
         
         assert error_result["error"] is True
         assert error_result["message"] == "MDB error"
-        assert error_result["operation"] == "list_parameters"
+        assert error_result["operation"] == "parameters"
         assert error_result["component"] == "MDB"
         assert error_result["server"] == "YamcsMDBServer"

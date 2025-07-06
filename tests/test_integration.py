@@ -44,7 +44,7 @@ class TestFastMCPIntegration:
             mission_time="2024-01-01T12:00:00Z",
         )
         client.get_instance.return_value = mock_instance
-        client.list_instances.return_value = [mock_instance]
+        client.list.return_value = [mock_instance]
 
         # Mock processors
         mock_processor = Mock(
@@ -54,7 +54,7 @@ class TestFastMCPIntegration:
             time="2024-01-01T12:00:00Z",
             replay=False,
         )
-        client.list_processors.return_value = [mock_processor]
+        client.list.return_value = [mock_processor]
         client.get_processor.return_value = mock_processor
 
         # Mock MDB
@@ -66,7 +66,7 @@ class TestFastMCPIntegration:
             units="V",
             description="Battery voltage",
         )
-        mock_mdb.list_parameters.return_value = [mock_param]
+        mock_mdb.parameters.return_value = [mock_param]
         mock_mdb.get_parameter.return_value = mock_param
         client.get_mdb.return_value = mock_mdb
 
@@ -84,7 +84,7 @@ class TestFastMCPIntegration:
             in_count=1000,
             out_count=950,
         )
-        client.list_links.return_value = [mock_link]
+        client.list.return_value = [mock_link]
         client.get_link.return_value = mock_link
 
         # Mock services
@@ -103,7 +103,7 @@ class TestFastMCPIntegration:
             object_count=100,
             created="2024-01-01T00:00:00Z",
         )
-        mock_storage.list_buckets.return_value = [mock_bucket]
+        mock_storage.buckets.return_value = [mock_bucket]
         client.get_storage_client.return_value = mock_storage
 
         return client
@@ -127,14 +127,14 @@ class TestFastMCPIntegration:
                 "test_connection",
 
                 # MDB tools
-                "mdb_list_parameters",
+                "mdb_parameters",
                 "mdb_get_parameter",
-                "mdb_list_commands",
+                "mdb_commands",
                 "mdb_get_command",
-                "mdb_list_space_systems",
+                "mdb_space_systems",
 
                 # Processor tools
-                "processor_list_processors",
+                "processor_list",
                 "processor_get_status",
                 "processor_issue_command",
                 "processor_get_parameter_value",
@@ -147,7 +147,7 @@ class TestFastMCPIntegration:
                 "archive_get_completeness",
 
                 # Link tools
-                "link_list_links",
+                "link_list",
                 "link_get_status",
                 "link_enable_link",
                 "link_disable_link",
@@ -155,15 +155,15 @@ class TestFastMCPIntegration:
                 "link_get_statistics",
 
                 # Storage tools
-                "object_list_buckets",
-                "object_list_objects",
+                "object_buckets",
+                "object_objects",
                 "object_get_object",
                 "object_put_object",
                 "object_delete_object",
                 "object_get_metadata",
 
                 # Instance tools
-                "instance_list_instances",
+                "instance_list",
                 "instance_get_info",
                 "instance_start_instance",
                 "instance_stop_instance",
@@ -204,7 +204,7 @@ class TestFastMCPIntegration:
             # In real FastMCP, this would be handled by the framework
             # This test verifies our tools can be called correctly
 
-            # Example: Call mdb_list_parameters
+            # Example: Call mdb_parameters
             # The actual call would go through FastMCP's message handling
             # but we can test the tool functions are properly set up
 

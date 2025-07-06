@@ -29,7 +29,7 @@ class LinkServer(BaseYamcsServer):
         """Register link-specific tools."""
         
         @self.tool()
-        async def list_links(
+        async def list(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List all data links.
@@ -60,7 +60,7 @@ class LinkServer(BaseYamcsServer):
                         "links": links,
                     }
             except Exception as e:
-                return self._handle_error("list_links", e)
+                return self._handle_error("list", e)
 
         @self.tool()
         async def get_status(

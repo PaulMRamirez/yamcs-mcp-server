@@ -30,7 +30,7 @@ class ArchiveServer(BaseYamcsServer):
         """Register archive-specific tools."""
         
         @self.tool()
-        async def list_packets(
+        async def list(
             instance: str | None = None,
             start: str | None = None,
             stop: str | None = None,
@@ -79,7 +79,7 @@ class ArchiveServer(BaseYamcsServer):
                         "packets": packets,
                     }
             except Exception as e:
-                return self._handle_error("list_packets", e)
+                return self._handle_error("list", e)
 
         @self.tool()
         async def get_parameter_values(

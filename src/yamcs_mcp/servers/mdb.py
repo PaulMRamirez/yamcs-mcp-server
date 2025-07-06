@@ -29,7 +29,7 @@ class MDBServer(BaseYamcsServer):
         """Register MDB-specific tools."""
         
         @self.tool()
-        async def list_parameters(
+        async def parameters(
             instance: str | None = None,
             system: str | None = None,
             search: str | None = None,
@@ -71,7 +71,7 @@ class MDBServer(BaseYamcsServer):
                         "parameters": parameters[:100],  # Limit to first 100
                     }
             except Exception as e:
-                return self._handle_error("list_parameters", e)
+                return self._handle_error("parameters", e)
 
         @self.tool()
         async def get_parameter(
@@ -107,7 +107,7 @@ class MDBServer(BaseYamcsServer):
                 return self._handle_error("get_parameter", e)
 
         @self.tool()
-        async def list_commands(
+        async def commands(
             instance: str | None = None,
             system: str | None = None,
             search: str | None = None,
@@ -148,7 +148,7 @@ class MDBServer(BaseYamcsServer):
                         "commands": commands[:100],  # Limit to first 100
                     }
             except Exception as e:
-                return self._handle_error("list_commands", e)
+                return self._handle_error("commands", e)
 
         @self.tool()
         async def get_command(
@@ -193,7 +193,7 @@ class MDBServer(BaseYamcsServer):
                 return self._handle_error("get_command", e)
 
         @self.tool()
-        async def list_space_systems(
+        async def space_systems(
             instance: str | None = None,
         ) -> dict[str, Any]:
             """List space systems from the Mission Database.
@@ -223,7 +223,7 @@ class MDBServer(BaseYamcsServer):
                         "space_systems": space_systems,
                     }
             except Exception as e:
-                return self._handle_error("list_space_systems", e)
+                return self._handle_error("space_systems", e)
 
     def _register_mdb_resources(self) -> None:
         """Register MDB-specific resources."""

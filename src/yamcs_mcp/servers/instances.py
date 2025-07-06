@@ -29,7 +29,7 @@ class InstanceServer(BaseYamcsServer):
         """Register instance-specific tools."""
         
         @self.tool()
-        async def list_instances() -> dict[str, Any]:
+        async def list() -> dict[str, Any]:
             """List all Yamcs instances.
 
             Returns:
@@ -54,7 +54,7 @@ class InstanceServer(BaseYamcsServer):
                         "instances": instances,
                     }
             except Exception as e:
-                return self._handle_error("list_instances", e)
+                return self._handle_error("list", e)
 
         @self.tool()
         async def get_instance(
