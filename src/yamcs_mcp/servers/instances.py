@@ -39,11 +39,14 @@ class InstanceServer(BaseYamcsServer):
                 async with self.client_manager.get_client() as client:
                     instances = []
                     for instance in client.list_instances():
+                        # Count processors for this instance
+                        processor_count = len(list(client.list_processors(instance.name)))
+                        
                         instances.append({
                             "name": instance.name,
                             "state": instance.state,
                             "mission_time": instance.mission_time.isoformat() if instance.mission_time else None,
-                            "processors": getattr(instance, 'processor_count', 0),
+                            "processors": processor_count,
                         })
                     
                     return {
@@ -69,6 +72,9 @@ class InstanceServer(BaseYamcsServer):
                 async with self.client_manager.get_client() as client:
                     inst = client.get_instance(instance or self.config.instance)
                     
+                    # Count processors for this instance
+                    processor_count = len(list(client.list_processors(inst.name)))
+                    
                     # Get capabilities
                     capabilities = []
                     if hasattr(inst, 'capabilities'):
@@ -78,7 +84,7 @@ class InstanceServer(BaseYamcsServer):
                         "name": inst.name,
                         "state": inst.state,
                         "mission_time": inst.mission_time.isoformat() if inst.mission_time else None,
-                        "processors": getattr(inst, 'processor_count', 0),
+                        "processors": processor_count,
                         "capabilities": capabilities,
                         "labels": getattr(inst, 'labels', {}),
                     }
@@ -173,7 +179,8 @@ class InstanceServer(BaseYamcsServer):
                         if inst.mission_time:
                             time_info = f" @ {inst.mission_time.isoformat()}"
                         
-                        proc_count = getattr(inst, 'processor_count', 0)
+                        # Count processors for this instance
+                        proc_count = len(list(client.list_processors(inst.name)))
                         lines.append(
                             f"  - {inst.name}: {inst.state} "
                             f"[{proc_count} processors]{time_info}"
@@ -198,7 +205,8 @@ class InstanceServer(BaseYamcsServer):
                     if inst.mission_time:
                         lines.append(f"  Mission Time: {inst.mission_time.isoformat()}")
                     
-                    proc_count = getattr(inst, 'processor_count', 0)
+                    # Count processors for this instance
+                    proc_count = len(list(client.list_processors(inst.name)))
                     lines.append(f"  Processors: {proc_count}")
                     
                     if hasattr(inst, 'capabilities') and inst.capabilities:
