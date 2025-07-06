@@ -7,8 +7,8 @@ from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
 
 
-class LinkServer(BaseYamcsServer):
-    """Link server for data link operations."""
+class LinksServer(BaseYamcsServer):
+    """Links server for data link operations."""
 
     def __init__(
         self,

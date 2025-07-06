@@ -58,7 +58,7 @@ class TestYamcsMCPServer:
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
             patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
             patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
-            patch("yamcs_mcp.server.LinkServer") as mock_link_class,
+            patch("yamcs_mcp.server.LinksServer") as mock_link_class,
             patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
             patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
         ):
@@ -129,7 +129,7 @@ class TestYamcsMCPServer:
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
             patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
             patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
-            patch("yamcs_mcp.server.LinkServer") as mock_link_class,
+            patch("yamcs_mcp.server.LinksServer") as mock_link_class,
             patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
             patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
         ):

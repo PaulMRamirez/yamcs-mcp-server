@@ -71,7 +71,7 @@ The server uses FastMCP's server composition pattern where each Yamcs subsystem 
 
 2. **Component Servers** (in `src/yamcs_mcp/servers/`)
    - **MDBServer** - Mission Database operations
-   - **LinkServer** - Data link management
+   - **LinksServer** - Data link management
    - **ArchiveServer** - Historical data access
    - **ProcessorServer** - Processor control
    - **InstanceServer** - Instance management

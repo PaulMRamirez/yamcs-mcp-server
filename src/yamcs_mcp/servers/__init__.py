@@ -2,7 +2,7 @@
 
 from .archive import ArchiveServer
 from .instances import InstanceServer
-from .links import LinkServer
+from .links import LinksServer
 from .mdb import MDBServer
 from .processor import ProcessorServer
 from .storage import StorageServer
@@ -10,7 +10,7 @@ from .storage import StorageServer
 __all__ = [
     "ArchiveServer",
     "InstanceServer", 
-    "LinkServer",
+    "LinksServer",
     "MDBServer",
     "ProcessorServer",
     "StorageServer",

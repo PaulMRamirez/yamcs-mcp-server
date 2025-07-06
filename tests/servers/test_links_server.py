@@ -4,16 +4,16 @@ from unittest.mock import Mock
 
 import pytest
 
-from yamcs_mcp.servers.links import LinkServer
+from yamcs_mcp.servers.links import LinksServer
 
 
-class TestLinkServer:
-    """Test the Link server."""
+class TestLinksServer:
+    """Test the Links server."""
 
     @pytest.fixture
     def link_server(self, mock_client_manager, mock_yamcs_config):
         """Create a Link server instance."""
-        return LinkServer(mock_client_manager, mock_yamcs_config)
+        return LinksServer(mock_client_manager, mock_yamcs_config)
 
     def test_link_server_initialization(self, link_server):
         """Test that the Link server initializes correctly."""

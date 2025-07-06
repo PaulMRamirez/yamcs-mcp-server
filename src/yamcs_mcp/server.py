@@ -16,7 +16,7 @@ from .config import Config
 from .servers import (
     ArchiveServer,
     InstanceServer,
-    LinkServer,
+    LinksServer,
     MDBServer,
     ProcessorServer,
     StorageServer,
@@ -102,7 +102,7 @@ class YamcsMCPServer:
 
         if self.config.yamcs.enable_links:
             self.logger.info("Mounting Link Management server")
-            link_server = LinkServer(self.client_manager, self.config.yamcs)
+            link_server = LinksServer(self.client_manager, self.config.yamcs)
             self.component_servers["link"] = link_server
             self.mcp.mount(link_server, prefix="link")
 
