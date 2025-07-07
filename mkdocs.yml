@@ -48,15 +48,16 @@ nav:
     - Configuration: configuration.md
   - User Guide:
     - Architecture: architecture.md
-    - Components:
-      - MDB Component: components/mdb.md
+    - Servers:
+      - MDB Server: servers/mdb.md
+      - Alarms Server: servers/alarms.md
     - Examples: examples.md
   - Development:
     - Development Guide: development.md
   - API Reference:
     - Overview: api.md
     - Server: api/server.md
-    - Components: api/components.md
+    - Servers: api/servers.md
   - Troubleshooting: troubleshooting.md
 
 plugins:
@@ -83,6 +84,7 @@ plugins:
             show_if_no_docstring: true
             show_signature_annotations: true
             show_bases: true
+          extra:
             show_inheritance: true
 
 markdown_extensions:

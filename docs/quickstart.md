@@ -131,7 +131,7 @@ If you encounter issues:
 
 ## Next Steps
 
-- Explore [Architecture](architecture.md) to understand how components work
-- Read about specific [Components](components/mdb.md)
+- Explore [Architecture](architecture.md) to understand how servers work
+- Read about specific [Servers](servers/mdb.md)
 - Check out more [Examples](examples.md)
 - Learn about [Development](development.md) if you want to contribute
