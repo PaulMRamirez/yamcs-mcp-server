@@ -1,17 +1,17 @@
 """Yamcs MCP servers."""
 
-from .archive import ArchiveServer
-from .instances import InstanceServer
+from .alarms import AlarmsServer
+from .instances import InstancesServer
 from .links import LinksServer
 from .mdb import MDBServer
-from .processor import ProcessorServer
+from .processors import ProcessorsServer
 from .storage import StorageServer
 
 __all__ = [
-    "ArchiveServer",
-    "InstanceServer", 
+    "AlarmsServer",
+    "InstancesServer", 
     "LinksServer",
     "MDBServer",
-    "ProcessorServer",
+    "ProcessorsServer",
     "StorageServer",
 ]

@@ -20,10 +20,10 @@ class TestFastMCPIntegration:
                 instance="test-instance",
                 enable_mdb=True,
                 enable_processor=True,
-                enable_archive=True,
                 enable_links=True,
                 enable_storage=True,
                 enable_instances=True,
+                enable_alarms=True,
             ),
             mcp=MCPConfig(
                 transport="stdio",
@@ -70,12 +70,6 @@ class TestFastMCPIntegration:
         mock_mdb.get_parameter.return_value = mock_param
         client.get_mdb.return_value = mock_mdb
 
-        # Mock archive
-        mock_archive = Mock()
-        mock_archive.list_events.return_value = []
-        mock_archive.stream_parameter_values.return_value = []
-        client.get_archive.return_value = mock_archive
-
         # Mock links
         mock_link = Mock(
             name="TM_DOWN",
@@ -89,8 +83,8 @@ class TestFastMCPIntegration:
 
         # Mock services
         mock_service = Mock(
-            name="Archive",
-            class_name="org.yamcs.archive.ArchiveService",
+            name="CommandQueue",
+            class_name="org.yamcs.cmdhistory.CommandHistoryPublisher",
             state="RUNNING",
         )
         client.list_services.return_value = [mock_service]
@@ -134,22 +128,15 @@ class TestFastMCPIntegration:
                 "mdb_space_systems",
 
                 # Processor tools
-                "processor_list_processors",
-                "processor_get_processor",
-                "processor_control_processor",
-                "processor_get_processors_status",
-
-                # Archive tools
-                "archive_list_packets",
-                "archive_get_parameter_values",
-                "archive_get_events",
-                "archive_get_command_history",
+                "processors_list_processors",
+                "processors_describe_processor",
+                "processors_delete_processor",
 
                 # Link tools
-                "link_list_links",
-                "link_describe_link",
-                "link_enable_link",
-                "link_disable_link",
+                "links_list_links",
+                "links_describe_link",
+                "links_enable_link",
+                "links_disable_link",
 
                 # Storage tools
                 "object_buckets",
@@ -160,12 +147,18 @@ class TestFastMCPIntegration:
                 "object_get_metadata",
 
                 # Instance tools
-                "instance_list_instances",
-                "instance_get_instance",
-                "instance_control_instance",
-                "instance_get_services",
-                "instance_get_instances_status",
-                "instance_get_current_instance",
+                "instances_list_instances",
+                "instances_describe_instance",
+                "instances_start_instance",
+                "instances_stop_instance",
+                
+                # Alarm tools
+                "alarms_list_alarms",
+                "alarms_acknowledge_alarm",
+                "alarms_shelve_alarm",
+                "alarms_unshelve_alarm",
+                "alarms_clear_alarm",
+                "alarms_read_log",
             ]
 
             # In actual FastMCP integration, tools would be accessible
@@ -214,12 +207,12 @@ class TestFastMCPIntegration:
             expected_resources = [
                 "mdb://parameters",
                 "mdb://commands",
-                "processor://status/{processor}",
-                "link://status",
+                "processors://list",
+                "links://status",
                 "object://buckets",
                 "object://objects/{bucket}",
-                "instance://list",
-                "instance://services/{instance}",
+                "instances://list",
+                "alarms://list",
             ]
 
             # In actual FastMCP, resources would be accessible
@@ -295,7 +288,7 @@ class TestFastMCPIntegration:
         assert config.yamcs.url == "http://localhost:8090"
         assert config.yamcs.instance == "simulator"
         assert config.mcp.transport == "stdio"
-        
+
         # Test with custom values
         custom_config = Config(
             yamcs=YamcsConfig(

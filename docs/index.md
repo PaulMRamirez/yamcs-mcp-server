@@ -9,16 +9,17 @@ Yamcs MCP Server is a Model Context Protocol (MCP) server that provides programm
 ## Features
 
 - **Full Yamcs Integration**: Access all major Yamcs subsystems through MCP
-- **Multiple Components**: 
-    - Mission Database (MDB) access
-    - Real-time and replay processor control
-    - Historical data archive queries
-    - Link management
-    - Object storage operations
-    - Instance and service management
+- **Modular Server Architecture**: 
+    - Mission Database (MDB) - Parameter and command definitions
+    - Processors - Real-time telemetry and command execution
+    - Links - Data link monitoring and control
+    - Storage - Object storage operations
+    - Instances - Yamcs instance management
+    - Alarms - Alarm monitoring and acknowledgment
+- **Server Composition**: Each subsystem is an independent FastMCP server
 - **Async/Await Support**: Built on modern Python async patterns
-- **Type Safety**: Full type hints and validation
-- **Extensible**: Easy to add new components and capabilities
+- **Type Safety**: Full type hints and validation with Pydantic
+- **Extensible**: Easy to add new servers and capabilities
 
 ## Quick Example
 

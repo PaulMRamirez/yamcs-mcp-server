@@ -31,10 +31,10 @@ class YamcsConfig(BaseSettings):
     # Server toggles
     enable_mdb: bool = True
     enable_processor: bool = True
-    enable_archive: bool = True
     enable_links: bool = True
     enable_storage: bool = True
     enable_instances: bool = True
+    enable_alarms: bool = True
 
     # Server settings
     server_name: str = "YamcsServer"

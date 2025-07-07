@@ -64,18 +64,18 @@ uv run ruff format .
 ### Server Composition Pattern
 The server uses FastMCP's server composition pattern where each Yamcs subsystem is implemented as an independent FastMCP server that gets mounted to the main server:
 
-1. **BaseYamcsServer** (`src/yamcs_mcp/components/base_server.py`)
-   - Base class extending FastMCP for all component servers
-   - Provides common functionality like health checks and error handling
-   - Each component server is a full FastMCP instance
+1. **BaseYamcsServer** (`src/yamcs_mcp/servers/base_server.py`)
+   - Base class extending FastMCP for all servers
+   - Provides common functionality like error handling
+   - Each server is a full FastMCP instance
 
-2. **Component Servers** (in `src/yamcs_mcp/servers/`)
+2. **Servers** (in `src/yamcs_mcp/servers/`)
    - **MDBServer** - Mission Database operations
    - **LinksServer** - Data link management
-   - **ArchiveServer** - Historical data access
-   - **ProcessorServer** - Processor control
-   - **InstanceServer** - Instance management
+   - **ProcessorsServer** - Processor control
+   - **InstancesServer** - Instance management
    - **StorageServer** - Object storage operations
+   - **AlarmsServer** - Alarm management and monitoring
 
 3. **Server Initialization Flow** (`src/yamcs_mcp/server.py`)
    - Creates main FastMCP instance
@@ -104,27 +104,34 @@ The server uses FastMCP's server composition pattern where each Yamcs subsystem 
 
 ### Server Structure
 
-Each component server follows this pattern:
+Each server follows this pattern:
 ```python
-class ComponentServer(BaseYamcsServer):
+class ServerName(BaseYamcsServer):
     def __init__(self, client_manager, config):
-        super().__init__("ComponentName", client_manager, config)
+        super().__init__("ServerType", client_manager, config)
         self._register_tools()
+        self._register_resources()
         
     def _register_tools(self):
         @self.tool()
         async def tool_name(param: str) -> dict[str, Any]:
             # Implementation using self.client_manager
             pass
+            
+    def _register_resources(self):
+        @self.resource("prefix://resource_name")
+        async def resource_name() -> str:
+            # Return formatted text information
+            pass
 ```
 
-Tools are prefixed when mounted, e.g., `mdb_list_parameters`, `link_list_links`
+Tools are prefixed when mounted, e.g., `mdb_list_parameters`, `links_describe_link`
 
 ### Critical Files
 
-- `src/yamcs_mcp/server.py` - Main server orchestration and component mounting
-- `src/yamcs_mcp/components/base_server.py` - Base class for all component servers
-- `src/yamcs_mcp/servers/` - Individual component server implementations
+- `src/yamcs_mcp/server.py` - Main server orchestration and server mounting
+- `src/yamcs_mcp/servers/base_server.py` - Base class for all servers
+- `src/yamcs_mcp/servers/` - Individual server implementations
 - `src/yamcs_mcp/client.py` - Yamcs connection management
 - `src/yamcs_mcp/config.py` - Configuration schema and validation
 
@@ -133,7 +140,12 @@ Tools are prefixed when mounted, e.g., `mdb_list_parameters`, `link_list_links`
 Default instance name is `simulator` when using the example-simulation Docker image. Key variables:
 - `YAMCS_URL` - Yamcs server URL (default: http://localhost:8090)
 - `YAMCS_INSTANCE` - Yamcs instance name (default: simulator)
-- `YAMCS_ENABLE_*` - Component toggles (all true by default)
+- `YAMCS_ENABLE_MDB` - Enable Mission Database server (default: true)
+- `YAMCS_ENABLE_PROCESSOR` - Enable Processors server (default: true)
+- `YAMCS_ENABLE_LINKS` - Enable Links server (default: true)
+- `YAMCS_ENABLE_STORAGE` - Enable Storage server (default: true)
+- `YAMCS_ENABLE_INSTANCES` - Enable Instances server (default: true)
+- `YAMCS_ENABLE_ALARMS` - Enable Alarms server (default: true)
 - `MCP_TRANSPORT` - Transport type: stdio, http, or sse (default: stdio)
 
 ### Claude Desktop Integration
@@ -177,6 +189,12 @@ Uses uv's `--directory` flag for proper project resolution:
    - Instance objects don't have `processor_count` - count with `list_processors()`
    - Use client methods like `start_instance()`, not instance methods
 
+7. **Alarm API field names**
+   - Use `violation_count` not `violations`
+   - Use `is_ok` not `is_process_ok` for current state
+   - Use `is_latched` not `is_triggered`
+   - Acknowledge info may be in separate attributes (acknowledge_time, acknowledged_by, acknowledge_message)
+
 ### Testing Yamcs with Docker
 
 Quick Yamcs setup for testing:
@@ -186,9 +204,40 @@ docker run -d --name yamcs -p 8090:8090 yamcs/example-simulation
 
 This starts Yamcs with a `simulator` instance on port 8090 that includes example telemetry data.
 
-## Memories
+## Key Architectural Decisions
 
-- Initial architecture used component registration pattern, later refactored to server composition
-- Converted all components to independent FastMCP servers mounted with prefixes
-- Fixed multiple Yamcs API misunderstandings (link attributes, instance methods)
-- Server composition provides better modularity and follows FastMCP best practices
+1. **Server Composition over Component Pattern**
+   - Each Yamcs subsystem is a complete FastMCP server
+   - Servers are mounted with prefixes (e.g., `mdb`, `links`, `processors`)
+   - Better modularity and follows FastMCP best practices
+
+2. **Consistent Naming Convention**
+   - Plural server names (LinksServer, ProcessorsServer, InstancesServer)
+   - Tool names follow pattern: `prefix_action_resource`
+   - Resources use URI scheme: `prefix://resource_name`
+
+3. **Error Handling**
+   - All errors handled through BaseYamcsServer._handle_error()
+   - Returns consistent error structure with operation context
+   - Non-fatal Yamcs connection failures (demo mode)
+
+4. **Tool Design**
+   - Tools that get single items use `describe_` prefix
+   - Tools that list items use `list_` prefix
+   - Control operations use verb names (enable_link, start_instance)
+   - All tools return dictionaries for consistency
+
+## Testing Commands
+
+```bash
+# Test specific servers
+uv run python scripts/test-alarms-server.py
+uv run python scripts/test-links-server.py
+
+# Run integration tests
+uv run pytest tests/test_integration.py -v
+
+# Test with real Yamcs
+docker run -d --name yamcs -p 8090:8090 yamcs/example-simulation
+uv run yamcs-mcp
+```

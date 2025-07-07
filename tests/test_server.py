@@ -52,11 +52,11 @@ class TestYamcsMCPServer:
             ),
             patch("yamcs_mcp.server.FastMCP") as mock_fastmcp_class,
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
-            patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
-            patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
+            patch("yamcs_mcp.server.ProcessorsServer") as mock_processor_class,
             patch("yamcs_mcp.server.LinksServer") as mock_link_class,
             patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
-            patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
+            patch("yamcs_mcp.server.InstancesServer") as mock_instance_class,
+            patch("yamcs_mcp.server.AlarmsServer") as mock_alarms_class,
         ):
 
             # Create mock FastMCP instance
@@ -66,18 +66,18 @@ class TestYamcsMCPServer:
             # Create mock server instances
             mock_mdb = Mock()
             mock_processor = Mock()
-            mock_archive = Mock()
             mock_link = Mock()
             mock_storage = Mock()
             mock_instance = Mock()
+            mock_alarms = Mock()
 
             # Set return values
             mock_mdb_class.return_value = mock_mdb
             mock_processor_class.return_value = mock_processor
-            mock_archive_class.return_value = mock_archive
             mock_link_class.return_value = mock_link
             mock_storage_class.return_value = mock_storage
             mock_instance_class.return_value = mock_instance
+            mock_alarms_class.return_value = mock_alarms
 
             # Create server
             server = YamcsMCPServer(mock_config)
@@ -89,9 +89,6 @@ class TestYamcsMCPServer:
             mock_processor_class.assert_called_once_with(
                 mock_client_manager, mock_config.yamcs
             )
-            mock_archive_class.assert_called_once_with(
-                mock_client_manager, mock_config.yamcs
-            )
             mock_link_class.assert_called_once_with(
                 mock_client_manager, mock_config.yamcs
             )
@@ -101,21 +98,23 @@ class TestYamcsMCPServer:
             mock_instance_class.assert_called_once_with(
                 mock_client_manager, mock_config.yamcs
             )
+            mock_alarms_class.assert_called_once_with(
+                mock_client_manager, mock_config.yamcs
+            )
 
             # Verify mount was called on main server with each sub-server
             assert mock_fastmcp.mount.call_count == 6
             mock_fastmcp.mount.assert_any_call(mock_mdb, prefix="mdb")
-            mock_fastmcp.mount.assert_any_call(mock_processor, prefix="processor")
-            mock_fastmcp.mount.assert_any_call(mock_archive, prefix="archive")
-            mock_fastmcp.mount.assert_any_call(mock_link, prefix="link")
+            mock_fastmcp.mount.assert_any_call(mock_processor, prefix="processors")
+            mock_fastmcp.mount.assert_any_call(mock_link, prefix="links")
             mock_fastmcp.mount.assert_any_call(mock_storage, prefix="storage")
-            mock_fastmcp.mount.assert_any_call(mock_instance, prefix="instance")
+            mock_fastmcp.mount.assert_any_call(mock_instance, prefix="instances")
+            mock_fastmcp.mount.assert_any_call(mock_alarms, prefix="alarms")
 
     def test_server_disabling(self, mock_config, mock_client_manager):
         """Test that servers can be disabled via config."""
         # Disable some servers
         mock_config.yamcs.enable_mdb = False
-        mock_config.yamcs.enable_archive = False
 
         with (
             patch(
@@ -123,24 +122,24 @@ class TestYamcsMCPServer:
                 return_value=mock_client_manager
             ),
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
-            patch("yamcs_mcp.server.ProcessorServer") as mock_processor_class,
-            patch("yamcs_mcp.server.ArchiveServer") as mock_archive_class,
+            patch("yamcs_mcp.server.ProcessorsServer") as mock_processor_class,
             patch("yamcs_mcp.server.LinksServer") as mock_link_class,
             patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
-            patch("yamcs_mcp.server.InstanceServer") as mock_instance_class,
+            patch("yamcs_mcp.server.InstancesServer") as mock_instance_class,
+            patch("yamcs_mcp.server.AlarmsServer") as mock_alarms_class,
         ):
 
             YamcsMCPServer(mock_config)
 
             # Verify disabled servers were not created
             mock_mdb_class.assert_not_called()
-            mock_archive_class.assert_not_called()
 
             # Verify enabled servers were created
             mock_processor_class.assert_called_once()
             mock_link_class.assert_called_once()
             mock_storage_class.assert_called_once()
             mock_instance_class.assert_called_once()
+            mock_alarms_class.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_run_method(self, mock_config, mock_client_manager):

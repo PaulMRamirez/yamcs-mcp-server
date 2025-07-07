@@ -65,19 +65,8 @@ param_info = await client.call_tool("mdb_get_parameter", {
 })
 
 # Get current value
-current_value = await client.call_tool("processor_get_parameter_value", {
+current_value = await client.call_tool("processors_get_parameter_value", {
     "parameter": "/YSS/SIMULATOR/BatteryVoltage"
-})
-```
-
-### Historical Data
-
-```python
-# Query historical parameter data
-history = await client.call_tool("archive_query_parameters", {
-    "parameters": ["/YSS/SIMULATOR/BatteryVoltage"],
-    "start": "2024-01-01T00:00:00Z",
-    "stop": "2024-01-01T01:00:00Z"
 })
 ```
 
@@ -85,7 +74,7 @@ history = await client.call_tool("archive_query_parameters", {
 
 ```python
 # Issue a command
-result = await client.call_tool("processor_issue_command", {
+result = await client.call_tool("processors_issue_command", {
     "command": "/YSS/SIMULATOR/SWITCH_BATTERY_ON",
     "dry_run": True  # Validate without executing
 })

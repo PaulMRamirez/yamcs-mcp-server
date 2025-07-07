@@ -10,10 +10,10 @@ The Yamcs MCP Server enables AI assistants to interact with mission control syst
 
 - **Mission Database (MDB)**: Access to parameters, commands, algorithms, and space systems
 - **TM/TC Processing**: Real-time telemetry monitoring and command execution
-- **Archive**: Historical data queries for parameters, events, and packets
 - **Link Management**: Monitor and control data links
 - **Object Storage**: Manage buckets and objects in Yamcs storage
 - **Instance Management**: Control Yamcs instances and services
+- **Alarm Management**: Monitor and acknowledge alarms with summary statistics
 
 ## Installation
 
@@ -76,13 +76,13 @@ YAMCS_INSTANCE=simulator
 YAMCS_USERNAME=admin
 YAMCS_PASSWORD=password
 
-# Component toggles
+# Server toggles
 YAMCS_ENABLE_MDB=true
 YAMCS_ENABLE_PROCESSOR=true
-YAMCS_ENABLE_ARCHIVE=true
 YAMCS_ENABLE_LINKS=true
 YAMCS_ENABLE_STORAGE=true
 YAMCS_ENABLE_INSTANCES=true
+YAMCS_ENABLE_ALARMS=true
 
 # Server settings
 MCP_TRANSPORT=stdio
@@ -111,29 +111,66 @@ Add the server to your Claude Desktop configuration:
 }
 ```
 
-**Important**: 
+**Important**:
 - Replace `/path/to/yamcs-mcp-server` with the actual path to your yamcs-mcp-server directory
 - The `--directory` argument is required for uv to find the correct project
 - If `uv` is not in your PATH, use the full path to uv (e.g., `/Users/username/.local/bin/uv`)
 
 ### Available Tools
 
-The server exposes numerous tools organized by component:
+The server exposes numerous tools organized by server:
 
 #### MDB Tools
 - `mdb_list_parameters` - List available parameters
-- `mdb_get_parameter` - Get parameter details
+- `mdb_describe_parameter` - Get parameter details
 - `mdb_list_commands` - List available commands
-- `mdb_get_command` - Get command details
-- And more...
+- `mdb_describe_command` - Get command details
+- `mdb_list_space_systems` - List space systems
+- `mdb_describe_space_system` - Get space system details
 
-#### Processing Tools
-- `processor_list_processors` - List available processors
-- `processor_issue_command` - Issue a command
-- `processor_subscribe_parameters` - Subscribe to parameter updates
-- And more...
+#### Processor Tools
+- `processors_list_processors` - List available processors
+- `processors_describe_processor` - Get processor details
+- `processors_delete_processor` - Delete a processor
+- `processors_issue_command` - Issue a command
+- `processors_subscribe_parameters` - Subscribe to parameter updates
 
-See the full documentation for a complete list of available tools.
+#### Link Tools
+- `links_list_links` - List all data links
+- `links_describe_link` - Get detailed link information
+- `links_enable_link` - Enable a data link
+- `links_disable_link` - Disable a data link
+
+#### Instance Tools
+- `instances_list_instances` - List Yamcs instances
+- `instances_describe_instance` - Get instance details
+- `instances_start_instance` - Start an instance
+- `instances_stop_instance` - Stop an instance
+
+#### Storage Tools
+- `storage_list_buckets` - List storage buckets
+- `storage_list_objects` - List objects in a bucket
+- `storage_upload_object` - Upload an object
+- `storage_download_object` - Download an object
+
+#### Alarm Tools
+- `alarms_list_alarms` - List active alarms with summary counts
+- `alarms_describe_alarm` - Get detailed alarm information
+- `alarms_acknowledge_alarm` - Acknowledge an alarm
+- `alarms_shelve_alarm` - Temporarily shelve an alarm
+- `alarms_unshelve_alarm` - Unshelve an alarm
+- `alarms_clear_alarm` - Clear an alarm
+- `alarms_read_log` - Read alarm history
+
+### Available Resources
+
+The server also provides read-only resources:
+
+- `mdb://parameters` - List all parameters
+- `processors://list` - List all processors with details
+- `links://status` - Show status of all links
+- `instances://list` - List all instances with details
+- `alarms://list` - Show active alarms summary
 
 ## Development
 
@@ -193,17 +230,20 @@ yamcs-mcp-server/
 ├── src/
 │   └── yamcs_mcp/
 │       ├── server.py           # Main server entry point
-│       ├── components/         # MCP components
+│       ├── servers/            # MCP servers
+│       │   ├── base_server.py # Base class for all servers
 │       │   ├── mdb.py         # Mission Database
-│       │   ├── processor.py   # TM/TC Processing
-│       │   ├── archive.py     # Archive queries
+│       │   ├── processors.py  # TM/TC Processing
 │       │   ├── links.py       # Link management
 │       │   ├── storage.py     # Object storage
-│       │   └── instances.py   # Instance management
-│       └── utils/             # Utilities
+│       │   ├── instances.py   # Instance management
+│       │   └── alarms.py      # Alarm management
+│       ├── client.py          # Yamcs client management
+│       ├── config.py          # Configuration
+│       └── types.py           # Type definitions
 ├── tests/                     # Test suite
-├── docs/                      # Documentation
-└── examples/                  # Usage examples
+├── scripts/                   # Test scripts
+└── CLAUDE.md                  # AI assistant guidance
 ```
 
 ## Contributing

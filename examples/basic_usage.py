@@ -1,7 +1,7 @@
 """Basic usage example for Yamcs MCP Server.
 
 This example demonstrates the server composition architecture where each
-Yamcs server (MDB, Links, Archive, etc.) is a separate FastMCP server
+Yamcs server (MDB, Links, etc.) is a separate FastMCP server
 that gets mounted to the main server with a prefix.
 """
 

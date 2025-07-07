@@ -15,7 +15,7 @@ parameters = [
 
 # Get current values
 for param in parameters:
-    result = await client.call_tool("processor_get_parameter_value", {
+    result = await client.call_tool("processors_get_parameter_value", {
         "parameter": param
     })
     print(f"{param}: {result['value']['eng_value']} at {result['value']['generation_time']}")
@@ -35,62 +35,13 @@ if "alarm_info" in param_info:
     print(f"Critical high: {param_info['alarm_info']['critical_high']}")
 ```
 
-## Historical Data Analysis
-
-### Query Parameter History
-
-```python
-# Get voltage data for the last hour
-from datetime import datetime, timedelta
-
-end_time = datetime.utcnow()
-start_time = end_time - timedelta(hours=1)
-
-result = await client.call_tool("archive_get_parameter_samples", {
-    "parameter": "/YSS/SIMULATOR/BatteryVoltage",
-    "start": start_time.isoformat() + "Z",
-    "stop": end_time.isoformat() + "Z",
-})
-
-# Analyze statistics
-stats = result["statistics"]
-print(f"Min: {stats['min']}V, Max: {stats['max']}V, Avg: {stats['average']}V")
-print(f"Samples: {result['count']}")
-```
-
-### Export Data for Analysis
-
-```python
-import csv
-
-# Query multiple parameters
-result = await client.call_tool("archive_query_parameters", {
-    "parameters": [
-        "/YSS/SIMULATOR/BatteryVoltage",
-        "/YSS/SIMULATOR/Temperature",
-        "/YSS/SIMULATOR/PowerConsumption"
-    ],
-    "start": "2024-01-01T00:00:00Z",
-    "stop": "2024-01-01T01:00:00Z",
-})
-
-# Export to CSV
-with open("telemetry_data.csv", "w", newline="") as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(["Time", "Parameter", "Value"])
-    
-    for param, data in result["parameters"].items():
-        for sample in data["samples"]:
-            writer.writerow([sample["time"], param, sample["value"]])
-```
-
 ## Command Operations
 
 ### Safe Command Execution
 
 ```python
 # First, validate the command
-validation = await client.call_tool("processor_issue_command", {
+validation = await client.call_tool("processors_issue_command", {
     "command": "/YSS/SIMULATOR/SWITCH_BATTERY_OFF",
     "args": {"battery_num": 1},
     "dry_run": True
@@ -98,7 +49,7 @@ validation = await client.call_tool("processor_issue_command", {
 
 if validation["valid"]:
     # Execute the command
-    result = await client.call_tool("processor_issue_command", {
+    result = await client.call_tool("processors_issue_command", {
         "command": "/YSS/SIMULATOR/SWITCH_BATTERY_OFF",
         "args": {"battery_num": 1},
         "dry_run": False
@@ -119,7 +70,7 @@ commands = [
 ]
 
 for cmd, args in commands:
-    result = await client.call_tool("processor_issue_command", {
+    result = await client.call_tool("processors_issue_command", {
         "command": cmd,
         "args": args
     })
@@ -127,41 +78,6 @@ for cmd, args in commands:
     
     # Wait a bit between commands
     await asyncio.sleep(1)
-```
-
-## Event Monitoring
-
-### Query Recent Events
-
-```python
-# Get events from the last hour
-result = await client.call_tool("archive_query_events", {
-    "start": (datetime.utcnow() - timedelta(hours=1)).isoformat() + "Z",
-    "stop": datetime.utcnow().isoformat() + "Z",
-    "severity": "WARNING"
-})
-
-for event in result["events"]:
-    print(f"[{event['severity']}] {event['time']}: {event['message']}")
-```
-
-### Filter Events by Source
-
-```python
-# Get all events from power subsystem
-result = await client.call_tool("archive_query_events", {
-    "start": "2024-01-01T00:00:00Z",
-    "stop": "2024-01-02T00:00:00Z",
-    "source": "PowerSubsystem",
-})
-
-# Count by severity
-severity_counts = {}
-for event in result["events"]:
-    sev = event["severity"]
-    severity_counts[sev] = severity_counts.get(sev, 0) + 1
-
-print(f"Event summary: {severity_counts}")
 ```
 
 ## Link Management
@@ -288,13 +204,13 @@ async def pre_pass_checklist(pass_start_time):
     ]
     
     for param in critical_params:
-        value = await client.call_tool("processor_get_parameter_value", {
+        value = await client.call_tool("processors_get_parameter_value", {
             "parameter": param
         })
         print(f"✓ {param}: {value['value']['eng_value']}")
     
     # 4. Clear event buffer
-    events = await client.call_tool("archive_query_events", {
+    events = await client.call_tool("get_events", {
         "start": (pass_start_time - timedelta(hours=1)).isoformat() + "Z",
         "stop": pass_start_time.isoformat() + "Z",
         "severity": "ERROR"
@@ -324,7 +240,7 @@ async def safe_parameter_check(parameter):
     
     for attempt in range(max_retries):
         try:
-            result = await client.call_tool("processor_get_parameter_value", {
+            result = await client.call_tool("processors_get_parameter_value", {
                 "parameter": parameter
             })
             

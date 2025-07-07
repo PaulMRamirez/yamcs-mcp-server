@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Yamcs MCP Server follows a modular component-based architecture using FastMCP 2.x's composition pattern. This design allows for clean separation of concerns and easy extensibility.
+The Yamcs MCP Server follows a modular server-based architecture using FastMCP 2.x's server composition pattern. Each Yamcs subsystem is implemented as an independent FastMCP server that gets mounted to the main server with a prefix.
 
 ## Architecture Diagram
 
@@ -17,15 +17,15 @@ The Yamcs MCP Server follows a modular component-based architecture using FastMC
 │  │                  FastMCP Core                        │   │
 │  └─────────────────────┬───────────────────────────────┘   │
 │  ┌─────────────────────┴───────────────────────────────┐   │
-│  │              Component Manager                       │   │
-│  └──┬────────┬────────┬────────┬────────┬────────┬────┘   │
-│     │        │        │        │        │        │         │
-│  ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐       │
-│  │ MDB │ │Proc │ │Arch │ │Link │ │Stor │ │Inst │       │
-│  └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘       │
-└─────┼───────┼───────┼───────┼───────┼───────┼───────────┘
-      │       │       │       │       │       │
-┌─────┴───────┴───────┴───────┴───────┴───────┴───────────┐
+│  │              Server Mount Points                     │   │
+│  └──┬────────┬────────┬────────┬────────┬────────────┘   │
+│     │        │        │        │        │                 │
+│  ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐     │
+│  │ MDB │ │Proc │ │Link │ │Stor │ │Inst │ │Alarm│     │
+│  └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘     │
+└─────┼───────┼───────┼───────┼───────┼───────────────────┘
+      │       │       │       │       │
+┌─────┴───────┴───────┴───────┴───────┴───────────────────┐
 │                  Yamcs Python Client                      │
 └─────────────────────┬─────────────────────────────────────┘
                       │ HTTP/WebSocket
@@ -38,7 +38,7 @@ The Yamcs MCP Server follows a modular component-based architecture using FastMC
 
 ### 1. Server Core (`server.py`)
 - Main entry point and server orchestration
-- Component registration and lifecycle management
+- Server mounting and prefix management
 - Transport handling (stdio, HTTP, SSE)
 - Global tools (health check, connection test)
 
@@ -54,59 +54,71 @@ The Yamcs MCP Server follows a modular component-based architecture using FastMC
 - Authentication handling
 - Error recovery and retry logic
 
-### 4. Base Component (`components/base.py`)
-- Abstract base class for all components
-- Common functionality (error handling, logging)
-- Tool and resource registration patterns
-- Health check implementation
+### 4. Base Server (`servers/base_server.py`)
+- Abstract base class for all servers
+- Common functionality (error handling)
+- Each server is a complete FastMCP instance
+- Consistent error response format
 
-## Component Modules
+## Server Modules
 
-Each component follows the same pattern:
-1. Inherits from `BaseYamcsComponent`
+Each server follows the same pattern:
+1. Inherits from `BaseYamcsServer` (which extends FastMCP)
 2. Registers tools via `@self.tool()` decorator
 3. Registers resources via `@self.resource()` decorator
 4. Implements domain-specific logic
 
-### MDB Component (`components/mdb.py`)
+### MDB Server (`servers/mdb.py`)
+- **Mount**: `/mdb`
 - **Purpose**: Access to Mission Database
 - **Tools**: Parameter/command listing and details
-- **Resources**: Parameter and command catalogs
+- **Resources**: `mdb://parameters`, `mdb://commands`
 
-### Processor Component (`components/processor.py`)
+### Processors Server (`servers/processors.py`)
+- **Mount**: `/processors`
 - **Purpose**: Real-time TM/TC processing
 - **Tools**: Command execution, parameter monitoring
-- **Resources**: Processor status, real-time data
+- **Resources**: `processors://list`
 
-### Archive Component (`components/archive.py`)
-- **Purpose**: Historical data queries
-- **Tools**: Parameter/event/packet history
-- **Resources**: Time-based data views
-
-### Link Management Component (`components/links.py`)
+### Links Server (`servers/links.py`)
+- **Mount**: `/links`
 - **Purpose**: Data link control
 - **Tools**: Link enable/disable, status monitoring
-- **Resources**: Link status and statistics
+- **Resources**: `links://status`
 
-### Object Storage Component (`components/storage.py`)
+### Storage Server (`servers/storage.py`)
+- **Mount**: `/storage`
 - **Purpose**: Bucket and object management
 - **Tools**: CRUD operations on objects
 - **Resources**: Bucket listings
 
-### Instance Management Component (`components/instances.py`)
+### Instances Server (`servers/instances.py`)
+- **Mount**: `/instances`
 - **Purpose**: Yamcs instance control
 - **Tools**: Instance/service start/stop
-- **Resources**: Instance and service listings
+- **Resources**: `instances://list`
+
+### Alarms Server (`servers/alarms.py`)
+- **Mount**: `/alarms`
+- **Purpose**: Alarm monitoring and management
+- **Tools**: List/acknowledge/shelve alarms
+- **Resources**: `alarms://list`
 
 ## Design Patterns
 
-### 1. Composition Pattern
-Using FastMCP's composition feature to combine multiple components into a single server:
+### 1. Server Composition Pattern
+Using FastMCP's mount feature to compose multiple servers:
 ```python
-server = FastMCP("YamcsServer")
-server.add_component(MDBComponent(...))
-server.add_component(ProcessorComponent(...))
+mcp = FastMCP("YamcsServer")
+mdb_server = MDBServer(client_manager, config)
+mcp.mount(mdb_server, prefix="mdb")
+processors_server = ProcessorsServer(client_manager, config)
+mcp.mount(processors_server, prefix="processors")
 ```
+
+This results in tools being prefixed, e.g.:
+- `mdb_list_parameters`
+- `processors_describe_processor`
 
 ### 2. Async Context Manager
 Client connections are managed using async context managers:
@@ -128,9 +140,11 @@ except Exception as e:
 
 ### 4. Resource URI Pattern
 Resources follow a consistent URI scheme:
-- `mdb://parameters` - MDB parameters
-- `processor://status/realtime` - Processor status
-- `archive://events/2024-01-01/2024-01-31` - Archive data
+- `mdb://parameters` - List all parameters
+- `processors://list` - List all processors
+- `links://status` - Show link status
+- `instances://list` - List all instances
+- `alarms://list` - Show active alarms
 
 ## Configuration Management
 
@@ -174,11 +188,24 @@ Structured logging using `structlog`:
 
 ## Extensibility
 
-Adding new components:
-1. Create new component class inheriting from `BaseYamcsComponent`
-2. Implement `_register_tools()` and `_register_resources()`
-3. Add component to server initialization
-4. Add configuration toggle
+Adding new servers:
+1. Create new server class inheriting from `BaseYamcsServer`
+2. Implement `_register_tools()` and optionally `_register_resources()`
+3. Mount the server in `YamcsMCPServer._initialize_servers()`
+4. Add configuration toggle (e.g., `YAMCS_ENABLE_NEWSERVER`)
+
+Example:
+```python
+class NewServer(BaseYamcsServer):
+    def __init__(self, client_manager, config):
+        super().__init__("New", client_manager, config)
+        self._register_tools()
+        
+# In server.py
+if self.config.yamcs.enable_new:
+    new_server = NewServer(self.client_manager, self.config.yamcs)
+    self.mcp.mount(new_server, prefix="new")
+```
 
 ## Testing Strategy
 

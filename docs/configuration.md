@@ -15,16 +15,16 @@ The following environment variables can be used to configure the server:
 | `YAMCS_USERNAME` | Username for authentication | - | No |
 | `YAMCS_PASSWORD` | Password for authentication | - | No |
 
-### Component Selection
+### Server Selection
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `YAMCS_MCP_ENABLE_MDB` | Enable Mission Database component | `true` |
-| `YAMCS_MCP_ENABLE_PROCESSOR` | Enable Processor component | `true` |
-| `YAMCS_MCP_ENABLE_ARCHIVE` | Enable Archive component | `true` |
-| `YAMCS_MCP_ENABLE_LINKS` | Enable Link Management component | `true` |
-| `YAMCS_MCP_ENABLE_STORAGE` | Enable Object Storage component | `true` |
-| `YAMCS_MCP_ENABLE_INSTANCES` | Enable Instance Management component | `true` |
+| `YAMCS_ENABLE_MDB` | Enable Mission Database server | `true` |
+| `YAMCS_ENABLE_PROCESSOR` | Enable Processors server | `true` |
+| `YAMCS_ENABLE_LINKS` | Enable Links server | `true` |
+| `YAMCS_ENABLE_STORAGE` | Enable Storage server | `true` |
+| `YAMCS_ENABLE_INSTANCES` | Enable Instances server | `true` |
+| `YAMCS_ENABLE_ALARMS` | Enable Alarms server | `true` |
 
 ### MCP Server Settings
 
@@ -52,13 +52,13 @@ yamcs:
   username: operator
   password: secret
   
-  # Component selection
+  # Server selection
   enable_mdb: true
   enable_processor: true
-  enable_archive: true
   enable_links: true
   enable_storage: true
   enable_instances: true
+  enable_alarms: true
 
 mcp:
   transport: stdio
@@ -92,10 +92,10 @@ config = Config(
         password="secret",
         enable_mdb=True,
         enable_processor=True,
-        enable_archive=True,
         enable_links=True,
         enable_storage=True,
         enable_instances=True,
+        enable_alarms=True,
     ),
     mcp=MCPConfig(
         transport="stdio",
@@ -152,18 +152,18 @@ export MCP_PORT=8000
 python -m yamcs_mcp
 ```
 
-## Component Configuration
+## Server Configuration
 
-You can selectively enable/disable components based on your needs:
+You can selectively enable/disable servers based on your needs:
 
 ```bash
-# Only enable MDB and Processor components
-export YAMCS_MCP_ENABLE_MDB=true
-export YAMCS_MCP_ENABLE_PROCESSOR=true
-export YAMCS_MCP_ENABLE_ARCHIVE=false
-export YAMCS_MCP_ENABLE_LINKS=false
-export YAMCS_MCP_ENABLE_STORAGE=false
-export YAMCS_MCP_ENABLE_INSTANCES=false
+# Only enable MDB and Processor servers
+export YAMCS_ENABLE_MDB=true
+export YAMCS_ENABLE_PROCESSOR=true
+export YAMCS_ENABLE_LINKS=false
+export YAMCS_ENABLE_STORAGE=false
+export YAMCS_ENABLE_INSTANCES=false
+export YAMCS_ENABLE_ALARMS=false
 ```
 
 This is useful for:
@@ -226,7 +226,7 @@ export YAMCS_INSTANCE=ops
 export YAMCS_USERNAME=mcp_service
 export YAMCS_PASSWORD="${YAMCS_SERVICE_PASSWORD}"
 export LOG_LEVEL=WARNING
-export YAMCS_MCP_ENABLE_INSTANCES=false  # Restrict instance management
+export YAMCS_ENABLE_INSTANCES=false  # Restrict instance management
 python -m yamcs_mcp
 ```
 

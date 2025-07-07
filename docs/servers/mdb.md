@@ -138,7 +138,7 @@ Before sending a command, validate its arguments:
 
 ```python
 # Get command definition
-cmd_info = await client.call_tool("mdb_get_command", {
+cmd_info = await client.call_tool("mdb_describe_command", {
     "command": "/YSS/SIMULATOR/SET_PARAMETER"
 })
 
@@ -230,7 +230,7 @@ async def build_command_args(command_name, user_args):
     """Build validated command arguments."""
     
     # Get command definition
-    cmd_info = await client.call_tool("mdb_get_command", {
+    cmd_info = await client.call_tool("mdb_describe_command", {
         "command": command_name
     })
     

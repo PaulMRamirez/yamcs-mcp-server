@@ -14,11 +14,11 @@ from rich.console import Console
 from .client import YamcsClientManager
 from .config import Config
 from .servers import (
-    ArchiveServer,
-    InstanceServer,
+    AlarmsServer,
+    InstancesServer,
     LinksServer,
     MDBServer,
-    ProcessorServer,
+    ProcessorsServer,
     StorageServer,
 )
 
@@ -89,15 +89,9 @@ class YamcsMCPServer:
             mounted_count += 1
 
         if self.config.yamcs.enable_processor:
-            self.logger.info("Mounting Processor server")
-            processor_server = ProcessorServer(self.client_manager, self.config.yamcs)
-            self.mcp.mount(processor_server, prefix="processor")
-            mounted_count += 1
-
-        if self.config.yamcs.enable_archive:
-            self.logger.info("Mounting Archive server")
-            archive_server = ArchiveServer(self.client_manager, self.config.yamcs)
-            self.mcp.mount(archive_server, prefix="archive")
+            self.logger.info("Mounting Processors server")
+            processors_server = ProcessorsServer(self.client_manager, self.config.yamcs)
+            self.mcp.mount(processors_server, prefix="processors")
             mounted_count += 1
 
         if self.config.yamcs.enable_links:
@@ -114,8 +108,14 @@ class YamcsMCPServer:
 
         if self.config.yamcs.enable_instances:
             self.logger.info("Mounting Instance Management server")
-            instance_server = InstanceServer(self.client_manager, self.config.yamcs)
-            self.mcp.mount(instance_server, prefix="instance")
+            instance_server = InstancesServer(self.client_manager, self.config.yamcs)
+            self.mcp.mount(instance_server, prefix="instances")
+            mounted_count += 1
+
+        if self.config.yamcs.enable_alarms:
+            self.logger.info("Mounting Alarms server")
+            alarms_server = AlarmsServer(self.client_manager, self.config.yamcs)
+            self.mcp.mount(alarms_server, prefix="alarms")
             mounted_count += 1
 
         self.logger.info(f"Mounted {mounted_count} servers")

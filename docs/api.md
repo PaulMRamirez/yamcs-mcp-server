@@ -6,11 +6,10 @@ This document provides a complete reference for all tools and resources exposed 
 
 1. [Server Tools](#server-tools)
 2. [MDB Component](#mdb-component)
-3. [Processor Component](#processor-component)
-4. [Archive Component](#archive-component)
-5. [Link Management Component](#link-management-component)
-6. [Object Storage Component](#object-storage-component)
-7. [Instance Management Component](#instance-management-component)
+3. [Processors Component](#processors-component)
+4. [Link Management Component](#link-management-component)
+5. [Object Storage Component](#object-storage-component)
+6. [Instance Management Component](#instance-management-component)
 
 ## Server Tools
 
@@ -178,11 +177,11 @@ List space systems from the Mission Database.
 - `mdb://parameters` - List all parameters in the MDB
 - `mdb://commands` - List all commands in the MDB
 
-## Processor Component
+## Processors Component
 
 ### Tools
 
-#### processor_list_processors
+#### processors_list_processors
 List available processors.
 
 **Parameters:**
@@ -205,7 +204,7 @@ List available processors.
 }
 ```
 
-#### processor_get_status
+#### processors_get_status
 Get processor status information.
 
 **Parameters:**
@@ -227,7 +226,7 @@ Get processor status information.
 }
 ```
 
-#### processor_issue_command
+#### processors_issue_command
 Issue a command through the processor.
 
 **Parameters:**
@@ -249,7 +248,7 @@ Issue a command through the processor.
 }
 ```
 
-#### processor_get_parameter_value
+#### processors_get_parameter_value
 Get current value of a parameter.
 
 **Parameters:**
@@ -272,7 +271,7 @@ Get current value of a parameter.
 }
 ```
 
-#### processor_set_parameter_value
+#### processors_set_parameter_value
 Set parameter value (for writable parameters).
 
 **Parameters:**
@@ -293,129 +292,7 @@ Set parameter value (for writable parameters).
 
 ### Resources
 
-- `processor://status/{processor}` - Real-time processor status
-
-## Archive Component
-
-### Tools
-
-#### archive_query_parameters
-Query historical parameter data.
-
-**Parameters:**
-- `parameters` (list[str], required): Parameter names to query
-- `start` (str, required): Start time (ISO format)
-- `stop` (str, required): Stop time (ISO format)
-- `instance` (str, optional): Yamcs instance name
-- `limit` (int, optional): Max samples per parameter (default: 1000)
-
-**Returns:**
-```json
-{
-  "instance": "myproject",
-  "start": "2024-01-01T00:00:00Z",
-  "stop": "2024-01-01T01:00:00Z",
-  "parameters": {
-    "/YSS/SIMULATOR/BatteryVoltage": {
-      "count": 3600,
-      "samples": [
-        {
-          "time": "2024-01-01T00:00:00Z",
-          "value": 12.5,
-          "raw_value": 2048,
-          "status": "VALID"
-        }
-      ]
-    }
-  }
-}
-```
-
-#### archive_get_parameter_samples
-Get parameter samples with statistics.
-
-**Parameters:**
-- `parameter` (str, required): Parameter name
-- `start` (str, required): Start time (ISO format)
-- `stop` (str, required): Stop time (ISO format)
-- `instance` (str, optional): Yamcs instance name
-- `limit` (int, optional): Max samples (default: 1000)
-
-**Returns:**
-```json
-{
-  "parameter": "/YSS/SIMULATOR/BatteryVoltage",
-  "start": "2024-01-01T00:00:00Z",
-  "stop": "2024-01-01T01:00:00Z",
-  "count": 3600,
-  "statistics": {
-    "min": 11.8,
-    "max": 12.6,
-    "average": 12.2
-  },
-  "samples": []
-}
-```
-
-#### archive_query_events
-Query historical events.
-
-**Parameters:**
-- `start` (str, required): Start time (ISO format)
-- `stop` (str, required): Stop time (ISO format)
-- `source` (str, optional): Filter by event source
-- `severity` (str, optional): Filter by severity
-- `search` (str, optional): Search in event message
-- `instance` (str, optional): Yamcs instance name
-- `limit` (int, optional): Max events (default: 1000)
-
-**Returns:**
-```json
-{
-  "instance": "myproject",
-  "start": "2024-01-01T00:00:00Z",
-  "stop": "2024-01-01T01:00:00Z",
-  "count": 15,
-  "events": [
-    {
-      "time": "2024-01-01T00:15:00Z",
-      "source": "FlightSoftware",
-      "type": "SYSTEM",
-      "severity": "INFO",
-      "message": "System initialized",
-      "sequence_number": 1
-    }
-  ]
-}
-```
-
-#### archive_get_completeness
-Get data completeness information.
-
-**Parameters:**
-- `parameter` (str, required): Parameter name
-- `start` (str, required): Start time (ISO format)
-- `stop` (str, required): Stop time (ISO format)
-- `instance` (str, optional): Yamcs instance name
-
-**Returns:**
-```json
-{
-  "parameter": "/YSS/SIMULATOR/BatteryVoltage",
-  "start": "2024-01-01T00:00:00Z",
-  "stop": "2024-01-01T01:00:00Z",
-  "completeness": {
-    "coverage_percent": 95.5,
-    "gaps": [],
-    "total_samples": 3420
-  }
-}
-```
-
-### Resources
-
-- `archive://parameters/{timerange}` - Historical parameter data
-- `archive://events/{timerange}` - Historical events
+- `processors://status/{processor}` - Real-time processor status
 
 ## Link Management Component
 
@@ -694,7 +571,7 @@ Get object metadata.
 
 ### Tools
 
-#### instance_list_instances
+#### instances_list_instances
 List Yamcs instances.
 
 **Parameters:** None
@@ -710,13 +587,13 @@ List Yamcs instances.
       "mission_time": "2024-01-01T12:00:00Z",
       "labels": {},
       "template": "simulation",
-      "capabilities": ["mdb", "commanding", "archive"]
+      "capabilities": ["mdb", "commanding"]
     }
   ]
 }
 ```
 
-#### instance_get_info
+#### instances_get_info
 Get detailed instance information.
 
 **Parameters:**
@@ -730,12 +607,12 @@ Get detailed instance information.
   "mission_time": "2024-01-01T12:00:00Z",
   "labels": {},
   "template": "simulation",
-  "capabilities": ["mdb", "commanding", "archive"],
+  "capabilities": ["mdb", "commanding"],
   "processors": ["realtime", "replay"]
 }
 ```
 
-#### instance_start_instance
+#### instances_start_instance
 Start a Yamcs instance.
 
 **Parameters:**
@@ -751,7 +628,7 @@ Start a Yamcs instance.
 }
 ```
 
-#### instance_stop_instance
+#### instances_stop_instance
 Stop a Yamcs instance.
 
 **Parameters:**
@@ -767,7 +644,7 @@ Stop a Yamcs instance.
 }
 ```
 
-#### instance_list_services
+#### instances_list_services
 List services for an instance.
 
 **Parameters:**
@@ -789,7 +666,7 @@ List services for an instance.
 }
 ```
 
-#### instance_start_service
+#### instances_start_service
 Start a service.
 
 **Parameters:**
@@ -807,7 +684,7 @@ Start a service.
 }
 ```
 
-#### instance_stop_service
+#### instances_stop_service
 Stop a service.
 
 **Parameters:**
@@ -827,5 +704,5 @@ Stop a service.
 
 ### Resources
 
-- `instance://list` - Available instances
-- `instance://services/{instance}` - Services for instance
+- `instances://list` - Available instances
+- `instances://services/{instance}` - Services for instance

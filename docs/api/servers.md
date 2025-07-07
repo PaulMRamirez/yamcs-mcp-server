@@ -1,50 +1,50 @@
-# Components API Reference
+# Servers API Reference
 
-## Base Component
+## Base Server
 
-::: yamcs_mcp.components.base
+::: yamcs_mcp.servers.base_server
     options:
       show_root_heading: true
       show_source: true
 
-## MDB Component
+## MDB Server
 
-::: yamcs_mcp.components.mdb
+::: yamcs_mcp.servers.mdb
     options:
       show_root_heading: true
       show_source: true
 
-## Processor Component
+## Processors Server
 
-::: yamcs_mcp.components.processor
+::: yamcs_mcp.servers.processors
     options:
       show_root_heading: true
       show_source: true
 
-## Archive Component
+## Links Server
 
-::: yamcs_mcp.components.archive
+::: yamcs_mcp.servers.links
     options:
       show_root_heading: true
       show_source: true
 
-## Link Management Component
+## Storage Server
 
-::: yamcs_mcp.components.links
+::: yamcs_mcp.servers.storage
     options:
       show_root_heading: true
       show_source: true
 
-## Object Storage Component
+## Instances Server
 
-::: yamcs_mcp.components.storage
+::: yamcs_mcp.servers.instances
     options:
       show_root_heading: true
       show_source: true
 
-## Instance Management Component
+## Alarms Server
 
-::: yamcs_mcp.components.instances
+::: yamcs_mcp.servers.alarms
     options:
       show_root_heading: true
       show_source: true
