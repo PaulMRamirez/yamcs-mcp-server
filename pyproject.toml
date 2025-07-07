@@ -52,7 +52,7 @@ docs = [
 
 [project.urls]
 Homepage = "https://github.com/PaulMRamirez/yamcs-mcp-server"
-Documentation = "https://PaulMRamirez.github.io/yamcs-mcp-server"
+Documentation = "https://github.com/PaulMRamirez/yamcs-mcp-server#readme"
 Repository = "https://github.com/PaulMRamirez/yamcs-mcp-server.git"
 Issues = "https://github.com/PaulMRamirez/yamcs-mcp-server/issues"
 
