@@ -5,11 +5,12 @@ This document provides a complete reference for all tools and resources exposed 
 ## Table of Contents
 
 1. [Server Tools](#server-tools)
-2. [MDB Component](#mdb-component)
-3. [Processors Component](#processors-component)
-4. [Link Management Component](#link-management-component)
-5. [Object Storage Component](#object-storage-component)
-6. [Instance Management Component](#instance-management-component)
+2. [MDB Server](#mdb-server)
+3. [Processors Server](#processors-server)
+4. [Links Server](#links-server)
+5. [Storage Server](#storage-server)
+6. [Instances Server](#instances-server)
+7. [Alarms Server](#alarms-server)
 
 ## Server Tools
 
@@ -23,9 +24,9 @@ Check overall server health status.
 {
   "status": "healthy",
   "server": "YamcsServer",
-  "version": "0.1.0",
+  "version": "0.2.3-beta",
   "yamcs_url": "http://localhost:8090",
-  "yamcs_instance": "myproject",
+  "yamcs_instance": "simulator",
   "transport": "stdio"
 }
 ```
@@ -44,22 +45,25 @@ Test connection to Yamcs server.
 }
 ```
 
-## MDB Component
+## MDB Server
+
+The Mission Database (MDB) server provides access to parameter and command definitions.
 
 ### Tools
 
-#### mdb_list_parameters
+#### mdb/list_parameters
 List parameters from the Mission Database.
 
 **Parameters:**
 - `instance` (str, optional): Yamcs instance name
 - `system` (str, optional): Filter by space system
 - `search` (str, optional): Search pattern for parameter names
+- `limit` (int, optional): Maximum results (default: 100)
 
 **Returns:**
 ```json
 {
-  "instance": "myproject",
+  "instance": "simulator",
   "count": 150,
   "parameters": [
     {
@@ -73,7 +77,7 @@ List parameters from the Mission Database.
 }
 ```
 
-#### mdb_get_parameter
+#### mdb/describe_parameter
 Get detailed information about a specific parameter.
 
 **Parameters:**
@@ -101,18 +105,19 @@ Get detailed information about a specific parameter.
 }
 ```
 
-#### mdb_list_commands
+#### mdb/list_commands
 List commands from the Mission Database.
 
 **Parameters:**
 - `instance` (str, optional): Yamcs instance name
 - `system` (str, optional): Filter by space system
 - `search` (str, optional): Search pattern for command names
+- `limit` (int, optional): Maximum results (default: 100)
 
 **Returns:**
 ```json
 {
-  "instance": "myproject",
+  "instance": "simulator",
   "count": 50,
   "commands": [
     {
@@ -125,7 +130,7 @@ List commands from the Mission Database.
 }
 ```
 
-#### mdb_get_command
+#### mdb/describe_command
 Get detailed information about a specific command.
 
 **Parameters:**
@@ -146,12 +151,11 @@ Get detailed information about a specific command.
       "type": "integer",
       "initial_value": "1"
     }
-  ],
-  "alias": []
+  ]
 }
 ```
 
-#### mdb_list_space_systems
+#### mdb/list_space_systems
 List space systems from the Mission Database.
 
 **Parameters:**
@@ -160,7 +164,7 @@ List space systems from the Mission Database.
 **Returns:**
 ```json
 {
-  "instance": "myproject",
+  "instance": "simulator",
   "count": 5,
   "space_systems": [
     {
@@ -174,14 +178,16 @@ List space systems from the Mission Database.
 
 ### Resources
 
-- `mdb://parameters` - List all parameters in the MDB
-- `mdb://commands` - List all commands in the MDB
+- `mdb://parameters` - Summary of parameters in the MDB
+- `mdb://commands` - Summary of commands in the MDB
 
-## Processors Component
+## Processors Server
+
+The Processors server manages real-time and replay processors.
 
 ### Tools
 
-#### processors_list_processors
+#### processors/list_processors
 List available processors.
 
 **Parameters:**
@@ -190,115 +196,78 @@ List available processors.
 **Returns:**
 ```json
 {
-  "instance": "myproject",
-  "count": 2,
+  "instance": "simulator",
+  "count": 1,
   "processors": [
     {
       "name": "realtime",
       "state": "RUNNING",
-      "persistent": true,
-      "time": "2024-01-01T12:00:00Z",
-      "replay": false
+      "mission_time": "2024-01-01T12:00:00Z",
+      "type": "realtime",
+      "replay": false,
+      "persistent": true
     }
   ]
 }
 ```
 
-#### processors_get_status
-Get processor status information.
+#### processors/describe_processor
+Get comprehensive information about a processor.
 
 **Parameters:**
-- `processor` (str, optional): Processor name (default: "realtime")
+- `processor` (str, required): Processor name
 - `instance` (str, optional): Yamcs instance name
 
 **Returns:**
 ```json
 {
-  "instance": "myproject",
-  "processor": "realtime",
+  "name": "realtime",
+  "instance": "simulator",
   "state": "RUNNING",
-  "time": "2024-01-01T12:00:00Z",
+  "type": "realtime",
   "mission_time": "2024-01-01T12:00:00Z",
-  "statistics": {
-    "tm_packets": 100,
-    "parameters": 1000
-  }
+  "config": {
+    "persistent": true,
+    "protected": false,
+    "synchronous": false,
+    "checkCommandClearance": true
+  },
+  "replay": {
+    "is_replay": false
+  },
+  "services": ["tm_realtime", "tc_realtime"],
+  "statistics": {}
 }
 ```
 
-#### processors_issue_command
-Issue a command through the processor.
+#### processors/delete_processor
+Delete a processor.
 
 **Parameters:**
-- `command` (str, required): Command qualified name
-- `args` (dict, optional): Command arguments
-- `processor` (str, optional): Processor name (default: "realtime")
-- `instance` (str, optional): Yamcs instance name
-- `dry_run` (bool, optional): Validate without executing
-
-**Returns:**
-```json
-{
-  "success": true,
-  "command_id": "cmd-123",
-  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE",
-  "generation_time": "2024-01-01T12:00:00Z",
-  "origin": "MCP",
-  "sequence_number": 42
-}
-```
-
-#### processors_get_parameter_value
-Get current value of a parameter.
-
-**Parameters:**
-- `parameter` (str, required): Parameter qualified name
-- `processor` (str, optional): Processor name (default: "realtime")
-- `instance` (str, optional): Yamcs instance name
-
-**Returns:**
-```json
-{
-  "parameter": "/YSS/SIMULATOR/BatteryVoltage",
-  "value": {
-    "eng_value": 12.5,
-    "raw_value": 2048,
-    "generation_time": "2024-01-01T12:00:00Z",
-    "acquisition_time": "2024-01-01T12:00:00Z",
-    "validity": "VALID",
-    "monitoring_result": "IN_LIMITS"
-  }
-}
-```
-
-#### processors_set_parameter_value
-Set parameter value (for writable parameters).
-
-**Parameters:**
-- `parameter` (str, required): Parameter qualified name
-- `value` (float/int/str/bool, required): New value
-- `processor` (str, optional): Processor name (default: "realtime")
+- `processor` (str, required): Processor name to delete
 - `instance` (str, optional): Yamcs instance name
 
 **Returns:**
 ```json
 {
   "success": true,
-  "parameter": "/YSS/SIMULATOR/TestParameter",
-  "value": 42.0,
-  "processor": "realtime"
+  "processor": "test-processor",
+  "instance": "simulator",
+  "message": "Processor 'test-processor' deleted successfully"
 }
 ```
 
 ### Resources
 
-- `processors://status/{processor}` - Real-time processor status
+- `processors://list` - Summary of all processors
 
-## Link Management Component
+## Links Server
+
+The Links server manages data links for telemetry and telecommand.
 
 ### Tools
 
-#### link_list_links
+#### links/list_links
 List all data links.
 
 **Parameters:**
@@ -307,12 +276,12 @@ List all data links.
 **Returns:**
 ```json
 {
-  "instance": "myproject",
-  "count": 3,
+  "instance": "simulator",
+  "count": 5,
   "links": [
     {
       "name": "tm_realtime",
-      "type": "TCP",
+      "type": "TcpTmDataLink",
       "status": "OK",
       "disabled": false,
       "parent": null,
@@ -323,8 +292,8 @@ List all data links.
 }
 ```
 
-#### link_get_status
-Get detailed link status.
+#### links/describe_link
+Get comprehensive information about a specific link.
 
 **Parameters:**
 - `link` (str, required): Link name
@@ -334,20 +303,23 @@ Get detailed link status.
 ```json
 {
   "name": "tm_realtime",
-  "type": "TCP",
-  "status": "OK",
-  "disabled": false,
+  "qualified_name": "tm_realtime",
+  "type": "TcpTmDataLink",
+  "parent": null,
+  "instance": "simulator",
+  "status": {
+    "state": "OK",
+    "enabled": true,
+    "detail": "Connected to localhost:10015"
+  },
   "statistics": {
     "data_in_count": 1000000,
-    "data_out_count": 0,
-    "last_data_in": "2024-01-01T12:00:00Z",
-    "last_data_out": null
-  },
-  "details": "Connected to localhost:10015"
+    "data_out_count": 0
+  }
 }
 ```
 
-#### link_enable_link
+#### links/enable_link
 Enable a data link.
 
 **Parameters:**
@@ -364,7 +336,7 @@ Enable a data link.
 }
 ```
 
-#### link_disable_link
+#### links/disable_link
 Disable a data link.
 
 **Parameters:**
@@ -381,56 +353,17 @@ Disable a data link.
 }
 ```
 
-#### link_reset_link
-Reset link counters.
-
-**Parameters:**
-- `link` (str, required): Link name
-- `instance` (str, optional): Yamcs instance name
-
-**Returns:**
-```json
-{
-  "success": true,
-  "link": "tm_realtime",
-  "operation": "reset",
-  "message": "Link 'tm_realtime' counters reset successfully"
-}
-```
-
-#### link_get_statistics
-Get statistics for all links.
-
-**Parameters:**
-- `instance` (str, optional): Yamcs instance name
-
-**Returns:**
-```json
-{
-  "instance": "myproject",
-  "statistics": {
-    "total_links": 3,
-    "enabled_links": 2,
-    "disabled_links": 1,
-    "ok_links": 2,
-    "failed_links": 0,
-    "total_data_in": 5000000,
-    "total_data_out": 100000,
-    "links": []
-  }
-}
-```
-
 ### Resources
 
 - `link://status` - Current status of all links
-- `link://statistics` - Link performance statistics
 
-## Object Storage Component
+## Storage Server
+
+The Storage server manages object storage buckets and objects.
 
 ### Tools
 
-#### object_list_buckets
+#### storage/list_buckets
 List storage buckets.
 
 **Parameters:**
@@ -439,76 +372,51 @@ List storage buckets.
 **Returns:**
 ```json
 {
-  "instance": "myproject",
+  "instance": "simulator",
   "count": 2,
   "buckets": [
     {
       "name": "telemetry",
       "created": "2024-01-01T00:00:00Z",
       "size": 1048576,
-      "object_count": 100,
-      "max_size": null
+      "object_count": 100
     }
   ]
 }
 ```
 
-#### object_list_objects
+#### storage/list_objects
 List objects in a bucket.
 
 **Parameters:**
 - `bucket` (str, required): Bucket name
 - `prefix` (str, optional): Object name prefix
-- `delimiter` (str, optional): Delimiter for pseudo-directories
 - `instance` (str, optional): Yamcs instance name
-- `limit` (int, optional): Max objects (default: 1000)
+- `limit` (int, optional): Max objects (default: 100)
 
 **Returns:**
 ```json
 {
   "bucket": "telemetry",
-  "prefix": "2024/01/",
+  "instance": "simulator",
   "count": 50,
   "objects": [
     {
       "name": "2024/01/01/tm_00001.dat",
       "size": 10240,
-      "created": "2024-01-01T00:00:00Z",
-      "metadata": {}
+      "created": "2024-01-01T00:00:00Z"
     }
-  ],
-  "prefixes": ["2024/01/01/", "2024/01/02/"]
+  ]
 }
 ```
 
-#### object_get_object
-Get object metadata and download URL.
-
-**Parameters:**
-- `bucket` (str, required): Bucket name
-- `object_name` (str, required): Object name
-- `instance` (str, optional): Yamcs instance name
-
-**Returns:**
-```json
-{
-  "bucket": "telemetry",
-  "name": "2024/01/01/tm_00001.dat",
-  "size": 10240,
-  "created": "2024-01-01T00:00:00Z",
-  "metadata": {},
-  "url": "http://localhost:8090/api/buckets/..."
-}
-```
-
-#### object_put_object
+#### storage/upload_object
 Upload an object to a bucket.
 
 **Parameters:**
 - `bucket` (str, required): Bucket name
 - `object_name` (str, required): Object name
-- `content` (str, required): Object content
-- `metadata` (dict, optional): Metadata key-value pairs
+- `data` (str, required): Base64 encoded data
 - `instance` (str, optional): Yamcs instance name
 
 **Returns:**
@@ -516,13 +424,12 @@ Upload an object to a bucket.
 {
   "success": true,
   "bucket": "telemetry",
-  "object_name": "test.txt",
-  "size": 100,
-  "metadata": {"type": "test"}
+  "object": "test.txt",
+  "size": 100
 }
 ```
 
-#### object_delete_object
+#### storage/delete_object
 Delete an object from a bucket.
 
 **Parameters:**
@@ -535,174 +442,330 @@ Delete an object from a bucket.
 {
   "success": true,
   "bucket": "telemetry",
-  "object_name": "test.txt",
+  "object": "test.txt",
   "message": "Object 'test.txt' deleted from bucket 'telemetry'"
 }
 ```
 
-#### object_get_metadata
-Get object metadata.
+#### storage/create_bucket
+Create a new storage bucket.
 
 **Parameters:**
-- `bucket` (str, required): Bucket name
-- `object_name` (str, required): Object name
+- `name` (str, required): Bucket name
 - `instance` (str, optional): Yamcs instance name
 
 **Returns:**
 ```json
 {
-  "bucket": "telemetry",
-  "object_name": "test.txt",
-  "metadata": {"type": "test"},
-  "system_metadata": {
-    "size": 100,
-    "created": "2024-01-01T00:00:00Z",
-    "content_type": "text/plain"
-  }
+  "success": true,
+  "bucket": {
+    "name": "new-bucket",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "message": "Bucket 'new-bucket' created successfully"
 }
 ```
 
 ### Resources
 
-- `object://buckets` - Available storage buckets
-- `object://objects/{bucket}` - Objects in specific bucket
+- `storage://overview` - Storage usage overview
 
-## Instance Management Component
+## Instances Server
+
+The Instances server manages Yamcs instances and their services.
 
 ### Tools
 
-#### instances_list_instances
-List Yamcs instances.
+#### instances/list_instances
+List all Yamcs instances.
 
 **Parameters:** None
 
 **Returns:**
 ```json
 {
-  "count": 2,
+  "count": 1,
   "instances": [
     {
-      "name": "myproject",
+      "name": "simulator",
       "state": "RUNNING",
       "mission_time": "2024-01-01T12:00:00Z",
-      "labels": {},
-      "template": "simulation",
-      "capabilities": ["mdb", "commanding"]
+      "processors": 1
     }
   ]
 }
 ```
 
-#### instances_get_info
-Get detailed instance information.
+#### instances/describe_instance
+Get comprehensive information about a Yamcs instance.
 
 **Parameters:**
-- `instance` (str, optional): Instance name
+- `instance` (str, optional): Instance name (uses default if not specified)
 
 **Returns:**
 ```json
 {
-  "name": "myproject",
+  "name": "simulator",
   "state": "RUNNING",
   "mission_time": "2024-01-01T12:00:00Z",
   "labels": {},
-  "template": "simulation",
-  "capabilities": ["mdb", "commanding"],
-  "processors": ["realtime", "replay"]
+  "capabilities": ["mdb", "commanding", "cfdp"],
+  "processors": {
+    "count": 1,
+    "items": [
+      {
+        "name": "realtime",
+        "state": "RUNNING",
+        "type": "realtime"
+      }
+    ]
+  },
+  "services": {
+    "count": 10,
+    "items": [
+      {
+        "name": "tm-provider",
+        "state": "RUNNING",
+        "class": "org.yamcs.tctm.TcpTmDataLink"
+      }
+    ]
+  }
 }
 ```
 
-#### instances_start_instance
+#### instances/start_instance
 Start a Yamcs instance.
 
 **Parameters:**
-- `instance` (str, required): Instance name
+- `instance` (str, optional): Instance name (uses default if not specified)
 
 **Returns:**
 ```json
 {
   "success": true,
-  "instance": "myproject",
-  "operation": "start",
-  "message": "Instance 'myproject' started successfully"
+  "instance": "simulator",
+  "message": "Instance 'simulator' started"
 }
 ```
 
-#### instances_stop_instance
+#### instances/stop_instance
 Stop a Yamcs instance.
 
 **Parameters:**
-- `instance` (str, required): Instance name
+- `instance` (str, optional): Instance name (uses default if not specified)
 
 **Returns:**
 ```json
 {
   "success": true,
-  "instance": "myproject",
-  "operation": "stop",
-  "message": "Instance 'myproject' stopped successfully"
-}
-```
-
-#### instances_list_services
-List services for an instance.
-
-**Parameters:**
-- `instance` (str, optional): Instance name
-
-**Returns:**
-```json
-{
-  "instance": "myproject",
-  "count": 10,
-  "services": [
-    {
-      "name": "tm-provider",
-      "class": "org.yamcs.tctm.TcpTmDataLink",
-      "state": "RUNNING",
-      "processor": "realtime"
-    }
-  ]
-}
-```
-
-#### instances_start_service
-Start a service.
-
-**Parameters:**
-- `service` (str, required): Service name
-- `instance` (str, optional): Instance name
-
-**Returns:**
-```json
-{
-  "success": true,
-  "service": "tm-provider",
-  "instance": "myproject",
-  "operation": "start",
-  "message": "Service 'tm-provider' started successfully"
-}
-```
-
-#### instances_stop_service
-Stop a service.
-
-**Parameters:**
-- `service` (str, required): Service name
-- `instance` (str, optional): Instance name
-
-**Returns:**
-```json
-{
-  "success": true,
-  "service": "tm-provider",
-  "instance": "myproject",
-  "operation": "stop",
-  "message": "Service 'tm-provider' stopped successfully"
+  "instance": "simulator",
+  "message": "Instance 'simulator' stopped"
 }
 ```
 
 ### Resources
 
-- `instances://list` - Available instances
-- `instances://services/{instance}` - Services for instance
+- `instances://list` - Summary of all instances
+
+## Alarms Server
+
+The Alarms server provides alarm monitoring and management capabilities.
+
+### Tools
+
+#### alarms/list_alarms
+List active alarms on a processor.
+
+**Parameters:**
+- `processor` (str, optional): Processor name (default: realtime)
+- `include_pending` (bool, optional): Include pending alarms
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "instance": "simulator",
+  "processor": "realtime",
+  "summary": {
+    "total": 3,
+    "acknowledged": 1,
+    "unacknowledged": 2,
+    "shelved": 0,
+    "ok": 1,
+    "latched": 2
+  },
+  "alarms": [
+    {
+      "name": "/YSS/SIMULATOR/BatteryVoltage",
+      "sequence_number": 1,
+      "trigger_time": "2024-01-01T12:00:00Z",
+      "severity": "CRITICAL",
+      "violation_count": 5,
+      "count": 1,
+      "is_acknowledged": false,
+      "is_ok": false,
+      "is_shelved": false
+    }
+  ]
+}
+```
+
+#### alarms/describe_alarm
+Get detailed information about a specific alarm.
+
+**Parameters:**
+- `alarm` (str, required): Alarm name (parameter name)
+- `processor` (str, optional): Processor name (default: realtime)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "instance": "simulator",
+  "processor": "realtime",
+  "alarm": {
+    "name": "/YSS/SIMULATOR/BatteryVoltage",
+    "sequence_number": 1,
+    "trigger_time": "2024-01-01T12:00:00Z",
+    "update_time": "2024-01-01T12:05:00Z",
+    "severity": "CRITICAL",
+    "violation_count": 5,
+    "count": 1,
+    "is_acknowledged": false,
+    "is_ok": false,
+    "is_process_ok": true,
+    "is_latched": true,
+    "is_latching": true,
+    "is_shelved": false
+  }
+}
+```
+
+#### alarms/acknowledge_alarm
+Acknowledge a specific alarm.
+
+**Parameters:**
+- `alarm` (str, required): Alarm name
+- `sequence_number` (int, required): Alarm sequence number
+- `comment` (str, optional): Acknowledgment comment
+- `processor` (str, optional): Processor name (default: realtime)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "success": true,
+  "alarm": "/YSS/SIMULATOR/BatteryVoltage",
+  "sequence_number": 1,
+  "processor": "realtime",
+  "instance": "simulator",
+  "message": "Alarm '/YSS/SIMULATOR/BatteryVoltage' (seq: 1) acknowledged"
+}
+```
+
+#### alarms/shelve_alarm
+Shelve (temporarily suspend) an alarm.
+
+**Parameters:**
+- `alarm` (str, required): Alarm name
+- `sequence_number` (int, required): Alarm sequence number
+- `comment` (str, optional): Shelve comment
+- `processor` (str, optional): Processor name (default: realtime)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "success": true,
+  "alarm": "/YSS/SIMULATOR/BatteryVoltage",
+  "sequence_number": 1,
+  "processor": "realtime",
+  "instance": "simulator",
+  "message": "Alarm '/YSS/SIMULATOR/BatteryVoltage' (seq: 1) shelved"
+}
+```
+
+#### alarms/unshelve_alarm
+Unshelve (reactivate) a previously shelved alarm.
+
+**Parameters:**
+- `alarm` (str, required): Alarm name
+- `sequence_number` (int, required): Alarm sequence number
+- `comment` (str, optional): Unshelve comment
+- `processor` (str, optional): Processor name (default: realtime)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "success": true,
+  "alarm": "/YSS/SIMULATOR/BatteryVoltage",
+  "sequence_number": 1,
+  "processor": "realtime",
+  "instance": "simulator",
+  "message": "Alarm '/YSS/SIMULATOR/BatteryVoltage' (seq: 1) unshelved"
+}
+```
+
+#### alarms/clear_alarm
+Clear a specific alarm.
+
+**Parameters:**
+- `alarm` (str, required): Alarm name
+- `sequence_number` (int, required): Alarm sequence number
+- `comment` (str, optional): Clear comment
+- `processor` (str, optional): Processor name (default: realtime)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "success": true,
+  "alarm": "/YSS/SIMULATOR/BatteryVoltage",
+  "sequence_number": 1,
+  "processor": "realtime",
+  "instance": "simulator",
+  "message": "Alarm '/YSS/SIMULATOR/BatteryVoltage' (seq: 1) cleared"
+}
+```
+
+#### alarms/read_log
+Read alarm history from the archive.
+
+**Parameters:**
+- `name` (str, optional): Optional alarm name filter
+- `start` (str, optional): Start time (ISO 8601 or 'now', 'today', 'yesterday')
+- `stop` (str, optional): Stop time (ISO 8601 or 'now', 'today', 'yesterday')
+- `lines` (int, optional): Maximum alarms to return (default: 10)
+- `descending` (bool, optional): Sort order (default: True)
+- `instance` (str, optional): Yamcs instance
+
+**Returns:**
+```json
+{
+  "instance": "simulator",
+  "filter": {
+    "name": null,
+    "start": "today",
+    "stop": "now",
+    "descending": true
+  },
+  "count": 5,
+  "requested_lines": 10,
+  "alarms": [
+    {
+      "name": "/YSS/SIMULATOR/BatteryVoltage",
+      "sequence_number": 1,
+      "trigger_time": "2024-01-01T12:00:00Z",
+      "severity": "CRITICAL",
+      "is_acknowledged": true,
+      "acknowledge_time": "2024-01-01T12:10:00Z",
+      "acknowledged_by": "operator"
+    }
+  ]
+}
+```
+
+### Resources
+
+- `alarms://list` - Summary of active alarms across all processors
