@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.2.3-beta] - 2025-07-07
+
+### Fixed
+- Mypy type checking errors that were preventing CI/CD pipeline completion
+- Added targeted type ignore comments for unfollowed imports from yamcs library
+- Added type ignore for FastMCP generic type parameter
+- Added type ignore for untyped decorators from mcp.tool()
+
+### Changed
+- Removed unnecessary mypy configuration changes
+- Maintained strict type checking while accommodating external library limitations
+
 ## [0.2.2-beta] - 2025-07-07
 
 ### Fixed
@@ -77,7 +89,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation and examples
 - Development tooling (ruff, mypy, pre-commit)
 
-[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.2-beta...HEAD
+[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.3-beta...HEAD
+[0.2.3-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.2-beta...v0.2.3-beta
 [0.2.2-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.1-beta...v0.2.2-beta
 [0.2.1-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.0-beta...v0.2.1-beta
 [0.2.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.1.0-beta...v0.2.0-beta
