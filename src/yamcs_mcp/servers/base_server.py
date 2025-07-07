@@ -9,7 +9,7 @@ from ..client import YamcsClientManager
 from ..config import YamcsConfig
 
 
-class BaseYamcsServer(FastMCP):
+class BaseYamcsServer(FastMCP):  # type: ignore[type-arg]
     """Base server with common functionality for all Yamcs servers."""
 
     def __init__(

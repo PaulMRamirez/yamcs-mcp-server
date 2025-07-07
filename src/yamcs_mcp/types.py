@@ -9,7 +9,7 @@ from yamcs.client import YamcsClient
 class YamcsServer(Protocol):
     """Protocol for all Yamcs MCP servers."""
 
-    async def initialize(self, client: YamcsClient, instance: str) -> None:
+    async def initialize(self, client: YamcsClient, instance: str) -> None:  # type: ignore[no-any-unimported]
         """Initialize server with Yamcs client."""
         ...
 

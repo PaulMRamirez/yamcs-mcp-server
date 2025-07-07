@@ -22,10 +22,10 @@ class YamcsClientManager:
             config: Yamcs configuration
         """
         self.config = config
-        self._client: YamcsClient | None = None
+        self._client: YamcsClient | None = None  # type: ignore[no-any-unimported]
 
     @asynccontextmanager
-    async def get_client(self) -> AsyncIterator[YamcsClient]:
+    async def get_client(self) -> AsyncIterator[YamcsClient]:  # type: ignore[no-any-unimported]
         """Get a Yamcs client with proper lifecycle management.
 
         Yields:
@@ -86,7 +86,7 @@ class YamcsClientManager:
                 except Exception as e:
                     logger.warning("Error closing Yamcs client", error=str(e))
 
-    async def create_client(self) -> YamcsClient:
+    async def create_client(self) -> YamcsClient:  # type: ignore[no-any-unimported]
         """Create a new Yamcs client.
 
         Returns:

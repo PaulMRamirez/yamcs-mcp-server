@@ -119,6 +119,7 @@ follow_imports = "normal"
 module = [
     "yamcs.*",
     "mcp.*",
+    "fastmcp.*",
     "structlog.*",
 ]
 ignore_missing_imports = true

@@ -123,7 +123,7 @@ class YamcsMCPServer:
     def _register_server_tools(self) -> None:
         """Register server-wide tools."""
 
-        @self.mcp.tool()
+        @self.mcp.tool()  # type: ignore[misc]
         async def health_check() -> dict[str, Any]:
             """Check overall server health.
 
@@ -139,7 +139,7 @@ class YamcsMCPServer:
                 "transport": self.config.mcp.transport,
             }
 
-        @self.mcp.tool()
+        @self.mcp.tool()  # type: ignore[misc]
         async def test_connection() -> dict[str, Any]:
             """Test connection to Yamcs server.
 
