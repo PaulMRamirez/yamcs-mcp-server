@@ -3,8 +3,8 @@
 from typing import Any
 
 from ..client import YamcsClientManager
-from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
+from .base_server import BaseYamcsServer
 
 
 class MDBServer(BaseYamcsServer):
@@ -27,7 +27,7 @@ class MDBServer(BaseYamcsServer):
 
     def _register_mdb_tools(self) -> None:
         """Register MDB-specific tools."""
-        
+
         @self.tool()
         async def parameters(
             instance: str | None = None,
@@ -54,16 +54,21 @@ class MDBServer(BaseYamcsServer):
                         # Apply filters
                         if system and not param.qualified_name.startswith(system):
                             continue
-                        if search and search.lower() not in param.qualified_name.lower():
+                        if (
+                            search
+                            and search.lower() not in param.qualified_name.lower()
+                        ):
                             continue
 
-                        parameters.append({
-                            "name": param.name,
-                            "qualified_name": param.qualified_name,
-                            "type": param.type,
-                            "units": param.units,
-                            "description": param.description,
-                        })
+                        parameters.append(
+                            {
+                                "name": param.name,
+                                "qualified_name": param.qualified_name,
+                                "type": param.type,
+                                "units": param.units,
+                                "description": param.description,
+                            }
+                        )
 
                     return {
                         "instance": instance or self.config.instance,
@@ -135,12 +140,14 @@ class MDBServer(BaseYamcsServer):
                         if search and search.lower() not in cmd.qualified_name.lower():
                             continue
 
-                        commands.append({
-                            "name": cmd.name,
-                            "qualified_name": cmd.qualified_name,
-                            "description": cmd.description,
-                            "abstract": cmd.abstract,
-                        })
+                        commands.append(
+                            {
+                                "name": cmd.name,
+                                "qualified_name": cmd.qualified_name,
+                                "description": cmd.description,
+                                "abstract": cmd.abstract,
+                            }
+                        )
 
                     return {
                         "instance": instance or self.config.instance,
@@ -173,14 +180,16 @@ class MDBServer(BaseYamcsServer):
 
                     # Extract arguments
                     arguments = []
-                    if hasattr(cmd, 'arguments'):
+                    if hasattr(cmd, "arguments"):
                         for arg in cmd.arguments:
-                            arguments.append({
-                                "name": arg.name,
-                                "description": arg.description,
-                                "type": getattr(arg, 'type', 'unknown'),
-                                "required": getattr(arg, 'required', True),
-                            })
+                            arguments.append(
+                                {
+                                    "name": arg.name,
+                                    "description": arg.description,
+                                    "type": getattr(arg, "type", "unknown"),
+                                    "required": getattr(arg, "required", True),
+                                }
+                            )
 
                     return {
                         "name": cmd.name,
@@ -211,11 +220,13 @@ class MDBServer(BaseYamcsServer):
                     # Get space systems
                     space_systems = []
                     for system in mdb_client.list_space_systems():
-                        space_systems.append({
-                            "name": system.name,
-                            "qualified_name": system.qualified_name,
-                            "description": getattr(system, 'description', None),
-                        })
+                        space_systems.append(
+                            {
+                                "name": system.name,
+                                "qualified_name": system.qualified_name,
+                                "description": getattr(system, "description", None),
+                            }
+                        )
 
                     return {
                         "instance": instance or self.config.instance,
@@ -227,37 +238,37 @@ class MDBServer(BaseYamcsServer):
 
     def _register_mdb_resources(self) -> None:
         """Register MDB-specific resources."""
-        
+
         @self.resource("mdb://parameters")
         async def get_parameters_summary() -> str:
             """Get a summary of available parameters."""
             try:
                 async with self.client_manager.get_client() as client:
                     mdb_client = client.get_mdb(self.config.instance)
-                    
+
                     # Count parameters by system
                     systems: dict[str, int] = {}
                     total = 0
-                    
+
                     for param in mdb_client.list_parameters():
                         total += 1
                         # Extract system from qualified name
-                        parts = param.qualified_name.split('/')
+                        parts = param.qualified_name.split("/")
                         if len(parts) > 1:
                             system = parts[1]
                             systems[system] = systems.get(system, 0) + 1
-                    
+
                     # Build summary
                     lines = [
-                        f"Mission Database Parameters Summary ({self.config.instance}):",
+                        f"MDB Parameters Summary ({self.config.instance}):",
                         f"Total Parameters: {total}",
                         "",
-                        "Parameters by System:"
+                        "Parameters by System:",
                     ]
-                    
+
                     for system, count in sorted(systems.items()):
                         lines.append(f"  {system}: {count}")
-                    
+
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"
@@ -268,30 +279,30 @@ class MDBServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     mdb_client = client.get_mdb(self.config.instance)
-                    
+
                     # Count commands by system
                     systems: dict[str, int] = {}
                     total = 0
-                    
+
                     for cmd in mdb_client.list_commands():
                         total += 1
                         # Extract system from qualified name
-                        parts = cmd.qualified_name.split('/')
+                        parts = cmd.qualified_name.split("/")
                         if len(parts) > 1:
                             system = parts[1]
                             systems[system] = systems.get(system, 0) + 1
-                    
+
                     # Build summary
                     lines = [
                         f"Mission Database Commands Summary ({self.config.instance}):",
                         f"Total Commands: {total}",
                         "",
-                        "Commands by System:"
+                        "Commands by System:",
                     ]
-                    
+
                     for system, count in sorted(systems.items()):
                         lines.append(f"  {system}: {count}")
-                    
+
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"

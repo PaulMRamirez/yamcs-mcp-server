@@ -103,7 +103,9 @@ class TestFastMCPIntegration:
         return client
 
     @pytest.mark.asyncio
-    async def test_server_initialization_and_tools(self, integration_config, mock_yamcs_client):
+    async def test_server_initialization_and_tools(
+        self, integration_config, mock_yamcs_client
+    ):
         """Test server initialization and tool availability."""
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
             server = YamcsMCPServer(integration_config)
@@ -115,51 +117,6 @@ class TestFastMCPIntegration:
             # Verify all tools are registered
             # Note: In real FastMCP, tools are stored differently
             # This is a conceptual test showing what should be available
-            expected_tools = [
-                # Server tools
-                "health_check",
-                "test_connection",
-
-                # MDB tools
-                "mdb_parameters",
-                "mdb_get_parameter",
-                "mdb_commands",
-                "mdb_get_command",
-                "mdb_space_systems",
-
-                # Processor tools
-                "processors_list_processors",
-                "processors_describe_processor",
-                "processors_delete_processor",
-
-                # Link tools
-                "links_list_links",
-                "links_describe_link",
-                "links_enable_link",
-                "links_disable_link",
-
-                # Storage tools
-                "object_buckets",
-                "object_objects",
-                "object_get_object",
-                "object_put_object",
-                "object_delete_object",
-                "object_get_metadata",
-
-                # Instance tools
-                "instances_list_instances",
-                "instances_describe_instance",
-                "instances_start_instance",
-                "instances_stop_instance",
-                
-                # Alarm tools
-                "alarms_list_alarms",
-                "alarms_acknowledge_alarm",
-                "alarms_shelve_alarm",
-                "alarms_unshelve_alarm",
-                "alarms_clear_alarm",
-                "alarms_read_log",
-            ]
 
             # In actual FastMCP integration, tools would be accessible
             # through the server's tool registry
@@ -187,7 +144,7 @@ class TestFastMCPIntegration:
     async def test_mcp_message_handling(self, integration_config, mock_yamcs_client):
         """Test handling of MCP protocol messages."""
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
-            server = YamcsMCPServer(integration_config)
+            YamcsMCPServer(integration_config)
 
             # Simulate MCP tool call request
             # In real FastMCP, this would be handled by the framework
@@ -201,19 +158,9 @@ class TestFastMCPIntegration:
     async def test_resource_access(self, integration_config, mock_yamcs_client):
         """Test that resources are accessible."""
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
-            server = YamcsMCPServer(integration_config)
+            YamcsMCPServer(integration_config)
 
             # Expected resources that should be registered
-            expected_resources = [
-                "mdb://parameters",
-                "mdb://commands",
-                "processors://list",
-                "links://status",
-                "object://buckets",
-                "object://objects/{bucket}",
-                "instances://list",
-                "alarms://list",
-            ]
 
             # In actual FastMCP, resources would be accessible
             # through the server's resource registry
@@ -222,7 +169,9 @@ class TestFastMCPIntegration:
     async def test_error_propagation(self, integration_config, mock_yamcs_client):
         """Test that errors are properly propagated through FastMCP."""
         # Simulate Yamcs connection failure
-        mock_yamcs_client.test_connection = AsyncMock(side_effect=Exception("Connection failed"))
+        mock_yamcs_client.test_connection = AsyncMock(
+            side_effect=Exception("Connection failed")
+        )
 
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
             server = YamcsMCPServer(integration_config)
@@ -237,7 +186,7 @@ class TestFastMCPIntegration:
     async def test_concurrent_operations(self, integration_config, mock_yamcs_client):
         """Test handling of concurrent operations."""
         with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client):
-            server = YamcsMCPServer(integration_config)
+            YamcsMCPServer(integration_config)
 
             # In a real scenario, FastMCP would handle concurrent tool calls
             # Our implementation should be thread-safe through the client manager
@@ -262,10 +211,11 @@ class TestFastMCPIntegration:
         integration_config.yamcs.enable_mdb = False
         integration_config.yamcs.enable_storage = False
 
-        with patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client), \
-             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class, \
-             patch("yamcs_mcp.server.StorageServer") as mock_storage_class:
-
+        with (
+            patch("yamcs_mcp.client.YamcsClient", return_value=mock_yamcs_client),
+            patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
+            patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
+        ):
             YamcsMCPServer(integration_config)
 
             # Verify disabled servers were not created

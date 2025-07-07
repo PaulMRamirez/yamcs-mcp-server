@@ -3,8 +3,8 @@
 from typing import Any
 
 from ..client import YamcsClientManager
-from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
+from .base_server import BaseYamcsServer
 
 
 class LinksServer(BaseYamcsServer):
@@ -27,7 +27,7 @@ class LinksServer(BaseYamcsServer):
 
     def _register_link_tools(self) -> None:
         """Register link-specific tools."""
-        
+
         @self.tool()
         async def list_links(
             instance: str | None = None,
@@ -44,15 +44,17 @@ class LinksServer(BaseYamcsServer):
                 async with self.client_manager.get_client() as client:
                     links = []
                     for link in client.list_links(instance or self.config.instance):
-                        links.append({
-                            "name": link.name,
-                            "type": getattr(link, 'class_name', None),
-                            "status": link.status,
-                            "disabled": not getattr(link, 'enabled', True),
-                            "parent": getattr(link, 'parent_name', None),
-                            "data_in_count": getattr(link, 'in_count', 0),
-                            "data_out_count": getattr(link, 'out_count', 0),
-                        })
+                        links.append(
+                            {
+                                "name": link.name,
+                                "type": getattr(link, "class_name", None),
+                                "status": link.status,
+                                "disabled": not getattr(link, "enabled", True),
+                                "parent": getattr(link, "parent_name", None),
+                                "data_in_count": getattr(link, "in_count", 0),
+                                "data_out_count": getattr(link, "out_count", 0),
+                            }
+                        )
 
                     return {
                         "instance": instance or self.config.instance,
@@ -74,7 +76,7 @@ class LinksServer(BaseYamcsServer):
                 instance: Yamcs instance (uses default if not specified)
 
             Returns:
-                dict: Complete link information including configuration, status, and statistics
+                dict: Complete link info (configuration, status, and statistics)
             """
             try:
                 async with self.client_manager.get_client() as client:
@@ -82,52 +84,52 @@ class LinksServer(BaseYamcsServer):
                         instance=instance or self.config.instance,
                         link=link,
                     )
-                    
+
                     # Get the link info from the LinkClient
                     link_info = link_client.get_info()
 
                     # Build comprehensive link information
                     link_description = {
                         "name": link_info.name,
-                        "qualified_name": getattr(link_info, 'qualified_name', link_info.name),
-                        "type": getattr(link_info, 'class_name', None),
-                        "parent": getattr(link_info, 'parent_name', None),
+                        "qualified_name": getattr(
+                            link_info, "qualified_name", link_info.name
+                        ),
+                        "type": getattr(link_info, "class_name", None),
+                        "parent": getattr(link_info, "parent_name", None),
                         "instance": instance or self.config.instance,
-                        
                         # Status information
                         "status": {
                             "state": link_info.status,
-                            "enabled": getattr(link_info, 'enabled', True),
-                            "detail": getattr(link_info, 'detail_status', None),
+                            "enabled": getattr(link_info, "enabled", True),
+                            "detail": getattr(link_info, "detail_status", None),
                         },
-                        
                         # Statistics
                         "statistics": {
-                            "data_in_count": getattr(link_info, 'in_count', 0),
-                            "data_out_count": getattr(link_info, 'out_count', 0),
+                            "data_in_count": getattr(link_info, "in_count", 0),
+                            "data_out_count": getattr(link_info, "out_count", 0),
                         },
-                        
                         # Configuration (if available)
                         "configuration": {
-                            "stream": getattr(link_info, 'stream', None),
-                            "address": getattr(link_info, 'address', None),
-                            "port": getattr(link_info, 'port', None),
+                            "stream": getattr(link_info, "stream", None),
+                            "address": getattr(link_info, "address", None),
+                            "port": getattr(link_info, "port", None),
                         },
-                        
                         # Additional information
-                        "extra": getattr(link_info, 'extra', {}),
-                        "actions": getattr(link_info, 'actions', []),
+                        "extra": getattr(link_info, "extra", {}),
+                        "actions": getattr(link_info, "actions", []),
                     }
-                    
+
                     # Remove None values from configuration
                     link_description["configuration"] = {
-                        k: v for k, v in link_description["configuration"].items() if v is not None
+                        k: v
+                        for k, v in link_description["configuration"].items()
+                        if v is not None
                     }
-                    
+
                     # If configuration is empty, remove it
                     if not link_description["configuration"]:
                         del link_description["configuration"]
-                    
+
                     return link_description
             except Exception as e:
                 return self._handle_error("describe_link", e)
@@ -198,10 +200,9 @@ class LinksServer(BaseYamcsServer):
             except Exception as e:
                 return self._handle_error("disable_link", e)
 
-
     def _register_link_resources(self) -> None:
         """Register link-specific resources."""
-        
+
         @self.resource("link://status")
         async def get_all_links_status() -> str:
             """Get current status of all links."""
@@ -209,22 +210,27 @@ class LinksServer(BaseYamcsServer):
                 async with self.client_manager.get_client() as client:
                     links = []
                     for link in client.list_links(self.config.instance):
-                        links.append({
-                            "name": link.name,
-                            "type": getattr(link, 'class_name', 'unknown'),
-                            "status": link.status,
-                            "disabled": not getattr(link, 'enabled', True),
-                            "data_in_count": getattr(link, 'in_count', 0),
-                            "data_out_count": getattr(link, 'out_count', 0),
-                        })
+                        links.append(
+                            {
+                                "name": link.name,
+                                "type": getattr(link, "class_name", "unknown"),
+                                "status": link.status,
+                                "disabled": not getattr(link, "enabled", True),
+                                "data_in_count": getattr(link, "in_count", 0),
+                                "data_out_count": getattr(link, "out_count", 0),
+                            }
+                        )
 
                     lines = [f"Links in {self.config.instance} ({len(links)} total):"]
                     for link in links:
                         status = "DISABLED" if link["disabled"] else link["status"]
-                        type_info = f" ({link['type']})" if link['type'] != 'unknown' else ""
+                        type_info = (
+                            f" ({link['type']})" if link["type"] != "unknown" else ""
+                        )
                         lines.append(
                             f"  - {link['name']}{type_info}: {status} "
-                            f"[in: {link['data_in_count']}, out: {link['data_out_count']}]"
+                            f"[in: {link['data_in_count']}, "
+                            f"out: {link['data_out_count']}]"
                         )
 
                     return "\n".join(lines)

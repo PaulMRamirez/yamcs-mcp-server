@@ -3,8 +3,8 @@
 from typing import Any
 
 from ..client import YamcsClientManager
-from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
+from .base_server import BaseYamcsServer
 
 
 class StorageServer(BaseYamcsServer):
@@ -27,7 +27,7 @@ class StorageServer(BaseYamcsServer):
 
     def _register_storage_tools(self) -> None:
         """Register storage-specific tools."""
-        
+
         @self.tool()
         async def buckets(
             instance: str | None = None,
@@ -43,16 +43,20 @@ class StorageServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     buckets = []
-                    for bucket in storage.list_buckets(instance or self.config.instance):
-                        buckets.append({
-                            "name": bucket.name,
-                            "size": getattr(bucket, 'size', 0),
-                            "object_count": getattr(bucket, 'num_objects', 0),
-                            "created": getattr(bucket, 'created', None),
-                        })
-                    
+                    for bucket in storage.list_buckets(
+                        instance or self.config.instance
+                    ):
+                        buckets.append(
+                            {
+                                "name": bucket.name,
+                                "size": getattr(bucket, "size", 0),
+                                "object_count": getattr(bucket, "num_objects", 0),
+                                "created": getattr(bucket, "created", None),
+                            }
+                        )
+
                     return {
                         "instance": instance or self.config.instance,
                         "count": len(buckets),
@@ -82,7 +86,7 @@ class StorageServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     objects = []
                     count = 0
                     for obj in storage.list_objects(
@@ -92,15 +96,19 @@ class StorageServer(BaseYamcsServer):
                     ):
                         if count >= limit:
                             break
-                        
-                        objects.append({
-                            "name": obj.name,
-                            "size": obj.size,
-                            "created": obj.created.isoformat() if obj.created else None,
-                            "metadata": getattr(obj, 'metadata', {}),
-                        })
+
+                        objects.append(
+                            {
+                                "name": obj.name,
+                                "size": obj.size,
+                                "created": obj.created.isoformat()
+                                if obj.created
+                                else None,
+                                "metadata": getattr(obj, "metadata", {}),
+                            }
+                        )
                         count += 1
-                    
+
                     return {
                         "bucket": bucket,
                         "instance": instance or self.config.instance,
@@ -129,21 +137,21 @@ class StorageServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     # Get object info
                     obj = storage.get_object(
                         instance=instance or self.config.instance,
                         bucket_name=bucket,
                         object_name=object_name,
                     )
-                    
+
                     return {
                         "name": obj.name,
                         "bucket": bucket,
                         "size": obj.size,
                         "created": obj.created.isoformat() if obj.created else None,
-                        "metadata": getattr(obj, 'metadata', {}),
-                        "url": getattr(obj, 'url', None),
+                        "metadata": getattr(obj, "metadata", {}),
+                        "url": getattr(obj, "url", None),
                     }
             except Exception as e:
                 return self._handle_error("get_object_info", e)
@@ -167,19 +175,21 @@ class StorageServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     # Delete the object
                     storage.remove_object(
                         instance=instance or self.config.instance,
                         bucket_name=bucket,
                         object_name=object_name,
                     )
-                    
+
                     return {
                         "success": True,
                         "bucket": bucket,
                         "object": object_name,
-                        "message": f"Object '{object_name}' deleted from bucket '{bucket}'",
+                        "message": (
+                            f"Object '{object_name}' deleted from bucket '{bucket}'"
+                        ),
                     }
             except Exception as e:
                 return self._handle_error("delete_object", e)
@@ -201,18 +211,18 @@ class StorageServer(BaseYamcsServer):
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     # Create the bucket
                     bucket = storage.create_bucket(
                         instance=instance or self.config.instance,
                         name=name,
                     )
-                    
+
                     return {
                         "success": True,
                         "bucket": {
                             "name": bucket.name,
-                            "created": getattr(bucket, 'created', None),
+                            "created": getattr(bucket, "created", None),
                         },
                         "message": f"Bucket '{name}' created successfully",
                     }
@@ -221,32 +231,34 @@ class StorageServer(BaseYamcsServer):
 
     def _register_storage_resources(self) -> None:
         """Register storage-specific resources."""
-        
+
         @self.resource("storage://overview")
         async def get_storage_overview() -> str:
             """Get an overview of storage usage."""
             try:
                 async with self.client_manager.get_client() as client:
                     storage = client.get_storage_client()
-                    
+
                     lines = [f"Storage Overview for {self.config.instance}:"]
-                    
+
                     total_size = 0
                     total_objects = 0
-                    
+
                     for bucket in storage.list_buckets(self.config.instance):
-                        size = getattr(bucket, 'size', 0)
-                        count = getattr(bucket, 'num_objects', 0)
+                        size = getattr(bucket, "size", 0)
+                        count = getattr(bucket, "num_objects", 0)
                         total_size += size
                         total_objects += count
-                        
+
                         size_mb = size / (1024 * 1024)
-                        lines.append(f"  - {bucket.name}: {count} objects ({size_mb:.1f} MB)")
-                    
+                        lines.append(
+                            f"  - {bucket.name}: {count} objects ({size_mb:.1f} MB)"
+                        )
+
                     lines.append("")
                     total_mb = total_size / (1024 * 1024)
                     lines.append(f"Total: {total_objects} objects ({total_mb:.1f} MB)")
-                    
+
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"

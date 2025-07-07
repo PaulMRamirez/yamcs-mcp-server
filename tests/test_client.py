@@ -38,7 +38,7 @@ class TestYamcsClientManager:
             mock_client_class.return_value = mock_client
 
             with pytest.raises(YamcsConnectionError) as exc_info:
-                async with manager.get_client() as client:
+                async with manager.get_client():
                     pass
 
             assert "Failed to connect to Yamcs server" in str(exc_info.value)
@@ -61,8 +61,7 @@ class TestYamcsClientManager:
             async with manager.get_client() as client:
                 assert client == mock_client
                 mock_client.authenticate.assert_called_once_with(
-                    username="testuser",
-                    password="testpass"
+                    username="testuser", password="testpass"
                 )
 
     @pytest.mark.asyncio
@@ -79,7 +78,7 @@ class TestYamcsClientManager:
             mock_client_class.return_value = mock_client
 
             with pytest.raises(YamcsAuthenticationError) as exc_info:
-                async with manager.get_client() as client:
+                async with manager.get_client():
                     pass
 
             assert "Failed to authenticate with Yamcs" in str(exc_info.value)
@@ -92,8 +91,7 @@ class TestYamcsClientManager:
         with patch("yamcs_mcp.client.YamcsClient") as mock_client_class:
             mock_client = Mock()
             mock_client.get_server_info.return_value = Mock(
-                version="5.0.0",
-                serverId="test-server"
+                version="5.0.0", serverId="test-server"
             )
             mock_client.close.return_value = None
             mock_client_class.return_value = mock_client

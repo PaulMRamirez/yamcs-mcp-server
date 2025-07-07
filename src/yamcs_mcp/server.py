@@ -8,7 +8,7 @@ import structlog
 from fastmcp import FastMCP
 
 if TYPE_CHECKING:
-    from fastmcp import FastMCP as FastMCPType
+    pass
 from rich.console import Console
 
 from .client import YamcsClientManager
@@ -151,7 +151,9 @@ class YamcsMCPServer:
                 return {
                     "connected": connected,
                     "yamcs_url": self.config.yamcs.url,
-                    "message": "Connection successful" if connected else "Connection failed",
+                    "message": (
+                        "Connection successful" if connected else "Connection failed"
+                    ),
                 }
             except Exception as e:
                 return {
@@ -178,7 +180,7 @@ class YamcsMCPServer:
 
         # Run server based on transport
         if self.config.mcp.transport == "stdio":
-            # For stdio, we need to run_async directly since we're already in an event loop
+            # For stdio, run_async directly since already in event loop
             await self.mcp.run_async()
         else:
             # HTTP/SSE transport

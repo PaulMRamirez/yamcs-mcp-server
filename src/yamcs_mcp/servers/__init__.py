@@ -9,7 +9,7 @@ from .storage import StorageServer
 
 __all__ = [
     "AlarmsServer",
-    "InstancesServer", 
+    "InstancesServer",
     "LinksServer",
     "MDBServer",
     "ProcessorsServer",

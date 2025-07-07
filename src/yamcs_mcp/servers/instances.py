@@ -3,8 +3,8 @@
 from typing import Any
 
 from ..client import YamcsClientManager
-from .base_server import BaseYamcsServer
 from ..config import YamcsConfig
+from .base_server import BaseYamcsServer
 
 
 class InstancesServer(BaseYamcsServer):
@@ -40,14 +40,20 @@ class InstancesServer(BaseYamcsServer):
                     instances = []
                     for instance in client.list_instances():
                         # Count processors for this instance
-                        processor_count = len(list(client.list_processors(instance.name)))
+                        processor_count = len(
+                            list(client.list_processors(instance.name))
+                        )
 
-                        instances.append({
-                            "name": instance.name,
-                            "state": instance.state,
-                            "mission_time": instance.mission_time.isoformat() if instance.mission_time else None,
-                            "processors": processor_count,
-                        })
+                        instances.append(
+                            {
+                                "name": instance.name,
+                                "state": instance.state,
+                                "mission_time": instance.mission_time.isoformat()
+                                if instance.mission_time
+                                else None,
+                                "processors": processor_count,
+                            }
+                        )
 
                     return {
                         "count": len(instances),
@@ -66,7 +72,7 @@ class InstancesServer(BaseYamcsServer):
                 instance: Instance name (uses default if not specified)
 
             Returns:
-                dict: Complete instance information including status, services, processors, and capabilities
+                dict: Complete instance info (status, services, processors, etc.)
             """
             try:
                 async with self.client_manager.get_client() as client:
@@ -79,46 +85,54 @@ class InstancesServer(BaseYamcsServer):
                             break
 
                     if not inst:
-                        return self._handle_error("describe_instance", Exception(f"Instance '{instance_name}' not found"))
+                        return self._handle_error(
+                            "describe_instance",
+                            Exception(f"Instance '{instance_name}' not found"),
+                        )
 
                     # Get processors for this instance
                     processors = []
                     for proc in client.list_processors(inst.name):
-                        processors.append({
-                            "name": proc.name,
-                            "state": proc.state,
-                            "type": getattr(proc, 'type', 'realtime'),
-                            "persistent": getattr(proc, 'persistent', False),
-                            "time": proc.time.isoformat() if hasattr(proc, 'time') and proc.time else None,
-                            "replay": getattr(proc, 'replay', False),
-                        })
+                        processors.append(
+                            {
+                                "name": proc.name,
+                                "state": proc.state,
+                                "type": getattr(proc, "type", "realtime"),
+                                "persistent": getattr(proc, "persistent", False),
+                                "time": proc.time.isoformat()
+                                if hasattr(proc, "time") and proc.time
+                                else None,
+                                "replay": getattr(proc, "replay", False),
+                            }
+                        )
 
                     # Get services for this instance
                     services = []
                     for service in client.list_services(inst.name):
-                        services.append({
-                            "name": service.name,
-                            "state": service.state,
-                            "class": getattr(service, 'class_name', None),
-                        })
+                        services.append(
+                            {
+                                "name": service.name,
+                                "state": service.state,
+                                "class": getattr(service, "class_name", None),
+                            }
+                        )
 
                     # Build comprehensive instance information
                     instance_info = {
                         "name": inst.name,
                         "state": inst.state,
-                        "mission_time": inst.mission_time.isoformat() if inst.mission_time else None,
-
+                        "mission_time": inst.mission_time.isoformat()
+                        if inst.mission_time
+                        else None,
                         # Basic information
-                        "labels": getattr(inst, 'labels', {}),
-                        "capabilities": list(getattr(inst, 'capabilities', [])),
-                        "failure_cause": getattr(inst, 'failure_cause', None),
-
+                        "labels": getattr(inst, "labels", {}),
+                        "capabilities": list(getattr(inst, "capabilities", [])),
+                        "failure_cause": getattr(inst, "failure_cause", None),
                         # Template information
-                        "template": getattr(inst, 'template', None),
-                        "template_args": getattr(inst, 'template_args', {}),
-                        "template_available": getattr(inst, 'template_available', None),
-                        "template_changed": getattr(inst, 'template_changed', None),
-
+                        "template": getattr(inst, "template", None),
+                        "template_args": getattr(inst, "template_args", {}),
+                        "template_available": getattr(inst, "template_available", None),
+                        "template_changed": getattr(inst, "template_changed", None),
                         # Components
                         "processors": {
                             "count": len(processors),
@@ -128,11 +142,18 @@ class InstancesServer(BaseYamcsServer):
                             "count": len(services),
                             "items": services,
                         },
-
                         # Mission database info
                         "mission_database": {
-                            "name": getattr(inst, 'mission_database', {}).get('name', None) if hasattr(inst, 'mission_database') else None,
-                            "version": getattr(inst, 'mission_database', {}).get('version', None) if hasattr(inst, 'mission_database') else None,
+                            "name": getattr(inst, "mission_database", {}).get(
+                                "name", None
+                            )
+                            if hasattr(inst, "mission_database")
+                            else None,
+                            "version": getattr(inst, "mission_database", {}).get(
+                                "version", None
+                            )
+                            if hasattr(inst, "mission_database")
+                            else None,
                         },
                     }
 
@@ -202,7 +223,6 @@ class InstancesServer(BaseYamcsServer):
                     }
             except Exception as e:
                 return self._handle_error("stop_instance", e)
-
 
     def _register_instance_resources(self) -> None:
         """Register instance-specific resources."""

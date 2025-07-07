@@ -13,8 +13,7 @@ class TestYamcsMCPServer:
     def test_server_initialization(self, mock_config, mock_client_manager):
         """Test server initialization."""
         with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
+            "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
 
@@ -32,23 +31,21 @@ class TestYamcsMCPServer:
     def test_server_has_mounted_servers(self, mock_config, mock_client_manager):
         """Test that server mounts sub-servers."""
         with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
+            "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
 
             # Verify that mount was called for each enabled server
             # We can't directly check mounts, but we can verify the server was created
             assert server.mcp is not None
-            assert hasattr(server.mcp, 'mount')
+            assert hasattr(server.mcp, "mount")
 
     def test_server_registration(self, mock_config, mock_client_manager):
         """Test that sub-servers are mounted with the main server."""
         # Mock FastMCP and all server classes
         with (
             patch(
-                "yamcs_mcp.server.YamcsClientManager",
-                return_value=mock_client_manager
+                "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
             ),
             patch("yamcs_mcp.server.FastMCP") as mock_fastmcp_class,
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
@@ -58,7 +55,6 @@ class TestYamcsMCPServer:
             patch("yamcs_mcp.server.InstancesServer") as mock_instance_class,
             patch("yamcs_mcp.server.AlarmsServer") as mock_alarms_class,
         ):
-
             # Create mock FastMCP instance
             mock_fastmcp = Mock()
             mock_fastmcp_class.return_value = mock_fastmcp
@@ -80,7 +76,7 @@ class TestYamcsMCPServer:
             mock_alarms_class.return_value = mock_alarms
 
             # Create server
-            server = YamcsMCPServer(mock_config)
+            YamcsMCPServer(mock_config)
 
             # Verify servers were created
             mock_mdb_class.assert_called_once_with(
@@ -118,8 +114,7 @@ class TestYamcsMCPServer:
 
         with (
             patch(
-                "yamcs_mcp.server.YamcsClientManager",
-                return_value=mock_client_manager
+                "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
             ),
             patch("yamcs_mcp.server.MDBServer") as mock_mdb_class,
             patch("yamcs_mcp.server.ProcessorsServer") as mock_processor_class,
@@ -128,7 +123,6 @@ class TestYamcsMCPServer:
             patch("yamcs_mcp.server.InstancesServer") as mock_instance_class,
             patch("yamcs_mcp.server.AlarmsServer") as mock_alarms_class,
         ):
-
             YamcsMCPServer(mock_config)
 
             # Verify disabled servers were not created
@@ -145,8 +139,7 @@ class TestYamcsMCPServer:
     async def test_run_method(self, mock_config, mock_client_manager):
         """Test the run method."""
         with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
+            "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
 
@@ -176,8 +169,7 @@ class TestYamcsMCPServer:
         mock_client_manager.test_connection = AsyncMock(return_value=False)
 
         with patch(
-            "yamcs_mcp.server.YamcsClientManager",
-            return_value=mock_client_manager
+            "yamcs_mcp.server.YamcsClientManager", return_value=mock_client_manager
         ):
             server = YamcsMCPServer(mock_config)
             server.mcp.run_async = AsyncMock()
@@ -190,10 +182,11 @@ class TestYamcsMCPServer:
 
     def test_main_function(self):
         """Test the main entry point."""
-        with patch("yamcs_mcp.server.Config") as mock_config_class, \
-             patch("yamcs_mcp.server.YamcsMCPServer") as mock_server_class, \
-             patch("yamcs_mcp.server.asyncio") as mock_asyncio:
-
+        with (
+            patch("yamcs_mcp.server.Config") as mock_config_class,
+            patch("yamcs_mcp.server.YamcsMCPServer") as mock_server_class,
+            patch("yamcs_mcp.server.asyncio") as mock_asyncio,
+        ):
             # Mock config
             mock_config = Mock()
             mock_config_class.from_env.return_value = mock_config

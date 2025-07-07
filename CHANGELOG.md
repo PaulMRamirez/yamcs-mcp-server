@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.2.2-beta] - 2025-07-07
+
+### Fixed
+- All linting errors (E501 line too long)
+- Code formatting to pass CI/CD checks
+
+### Changed
+- Minor code refactoring for better readability
+
 ## [0.2.1-beta] - 2025-07-07
 
 ### Fixed
@@ -68,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation and examples
 - Development tooling (ruff, mypy, pre-commit)
 
-[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.1-beta...HEAD
+[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.2-beta...HEAD
+[0.2.2-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.1-beta...v0.2.2-beta
 [0.2.1-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.0-beta...v0.2.1-beta
 [0.2.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.1.0-beta...v0.2.0-beta
 [0.1.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/releases/tag/v0.1.0-beta

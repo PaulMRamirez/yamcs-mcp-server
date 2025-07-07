@@ -28,7 +28,7 @@ class BaseYamcsServer(FastMCP):
             version: Server version
         """
         super().__init__(name=f"Yamcs{name}Server", version=version)
-        
+
         self.server_name = name
         self.client_manager = client_manager
         self.config = config

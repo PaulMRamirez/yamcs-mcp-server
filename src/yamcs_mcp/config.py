@@ -38,7 +38,9 @@ class YamcsConfig(BaseSettings):
 
     # Server settings
     server_name: str = "YamcsServer"
-    log_level: str = Field(default="INFO", pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    log_level: str = Field(
+        default="INFO", pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$"
+    )
 
 
 class MCPConfig(BaseSettings):
@@ -47,8 +49,7 @@ class MCPConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MCP_")
 
     transport: Literal["stdio", "http", "sse"] = Field(
-        default="stdio",
-        description="MCP transport type"
+        default="stdio", description="MCP transport type"
     )
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=1024, le=65535)
