@@ -24,7 +24,7 @@ classifiers = [
 
 dependencies = [
     "mcp>=1.3.0",              # Model Context Protocol
-    "fastmcp>=2.0.0",          # FastMCP framework
+    "fastmcp>=2.10.1",         # FastMCP framework
     "yamcs-client>=1.10.0",    # Yamcs Python client
     "pydantic>=2.10.0",        # Data validation
     "pydantic-settings>=2.0.0", # Settings management
