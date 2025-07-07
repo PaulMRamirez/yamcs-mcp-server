@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.2.1-beta] - 2025-07-07
+
+### Fixed
+- Updated all USERNAME placeholders to PaulMRamirez in documentation
+- Changed documentation URL to point to GitHub README until Pages is set up
+
 ## [0.2.0-beta] - 2025-07-07
 
 ### Added
@@ -62,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation and examples
 - Development tooling (ruff, mypy, pre-commit)
 
-[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.0-beta...HEAD
+[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.1-beta...HEAD
+[0.2.1-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.0-beta...v0.2.1-beta
 [0.2.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.1.0-beta...v0.2.0-beta
 [0.1.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/releases/tag/v0.1.0-beta
