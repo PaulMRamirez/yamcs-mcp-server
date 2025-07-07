@@ -9,7 +9,7 @@ description = "MCP server for Yamcs Mission Control System"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-authors = [{name = "Your Name", email = "your.email@example.com"}]
+authors = [{name = "Paul M Ramirez", email = "paul@paulramirez.com"}]
 keywords = ["yamcs", "mcp", "space", "mission-control", "satellite"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -51,10 +51,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/yamcs-mcp-server"
-Documentation = "https://yourusername.github.io/yamcs-mcp-server"
-Repository = "https://github.com/yourusername/yamcs-mcp-server.git"
-Issues = "https://github.com/yourusername/yamcs-mcp-server/issues"
+Homepage = "https://github.com/PaulMRamirez/yamcs-mcp-server"
+Documentation = "https://PaulMRamirez.github.io/yamcs-mcp-server"
+Repository = "https://github.com/PaulMRamirez/yamcs-mcp-server.git"
+Issues = "https://github.com/PaulMRamirez/yamcs-mcp-server/issues"
 
 [project.scripts]
 yamcs-mcp = "yamcs_mcp.__main__:main"

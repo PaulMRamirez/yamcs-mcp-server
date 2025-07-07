@@ -1,8 +1,8 @@
 site_name: Yamcs MCP Server
 site_description: Model Context Protocol server for Yamcs Mission Control System
-site_author: Your Name
-site_url: https://github.com/yourusername/yamcs-mcp-server
-repo_url: https://github.com/yourusername/yamcs-mcp-server
+site_author: Paul M Ramirez
+site_url: https://github.com/PaulMRamirez/yamcs-mcp-server
+repo_url: https://github.com/PaulMRamirez/yamcs-mcp-server
 repo_name: yamcs-mcp-server
 
 theme:
@@ -125,7 +125,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/yourusername/yamcs-mcp-server
+      link: https://github.com/PaulMRamirez/yamcs-mcp-server
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/yamcs-mcp-server/
   version:

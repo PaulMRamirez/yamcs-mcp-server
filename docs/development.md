@@ -14,7 +14,7 @@ This guide covers setting up a development environment and working with the Yamc
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/USERNAME/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 ```
 

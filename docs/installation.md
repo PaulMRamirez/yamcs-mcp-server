@@ -25,7 +25,7 @@ uv pip install yamcs-mcp-server
 To install the latest development version:
 
 ```bash
-git clone https://github.com/yourusername/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 pip install -e .
 ```
@@ -33,7 +33,7 @@ pip install -e .
 Or using uv:
 
 ```bash
-git clone https://github.com/yourusername/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 uv pip install -e .
 ```
@@ -43,12 +43,12 @@ uv pip install -e .
 A Docker image is available for easy deployment:
 
 ```bash
-docker pull yourusername/yamcs-mcp-server:latest
+docker pull PaulMRamirez/yamcs-mcp-server:latest
 
 docker run -it \
   -e YAMCS_URL=http://localhost:8090 \
   -e YAMCS_INSTANCE=simulator \
-  yourusername/yamcs-mcp-server
+  PaulMRamirez/yamcs-mcp-server
 ```
 
 ## Verify Installation
@@ -68,7 +68,7 @@ python -m yamcs_mcp test-connection
 For development, install with all extras:
 
 ```bash
-git clone https://github.com/yourusername/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 
 # Install with development dependencies

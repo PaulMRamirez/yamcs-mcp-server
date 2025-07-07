@@ -62,6 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation and examples
 - Development tooling (ruff, mypy, pre-commit)
 
-[Unreleased]: https://github.com/USERNAME/yamcs-mcp-server/compare/v0.2.0-beta...HEAD
-[0.2.0-beta]: https://github.com/USERNAME/yamcs-mcp-server/compare/v0.1.0-beta...v0.2.0-beta
-[0.1.0-beta]: https://github.com/USERNAME/yamcs-mcp-server/releases/tag/v0.1.0-beta
+[Unreleased]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.2.0-beta...HEAD
+[0.2.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/compare/v0.1.0-beta...v0.2.0-beta
+[0.1.0-beta]: https://github.com/PaulMRamirez/yamcs-mcp-server/releases/tag/v0.1.0-beta

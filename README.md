@@ -27,7 +27,7 @@ The Yamcs MCP Server enables AI assistants to interact with mission control syst
 
 ```bash
 # Clone the repository
-git clone https://github.com/USERNAME/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 
 # Install dependencies
@@ -41,7 +41,7 @@ uv run yamcs-mcp
 
 ```bash
 # Clone the repository
-git clone https://github.com/USERNAME/yamcs-mcp-server.git
+git clone https://github.com/PaulMRamirez/yamcs-mcp-server.git
 cd yamcs-mcp-server
 
 # Create virtual environment
@@ -114,7 +114,7 @@ Add the server to your Claude Desktop configuration:
 **Important**:
 - Replace `/path/to/yamcs-mcp-server` with the actual path to your yamcs-mcp-server directory
 - The `--directory` argument is required for uv to find the correct project
-- If `uv` is not in your PATH, use the full path to uv (e.g., `/Users/username/.local/bin/uv`)
+- If `uv` is not in your PATH, use the full path to uv (e.g., `/Users/PaulMRamirez/.local/bin/uv`)
 
 ### Available Tools
 
