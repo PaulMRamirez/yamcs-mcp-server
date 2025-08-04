@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.3.1-beta] - 2025-08-04
+
+### Changed
+- Improved documentation to avoid prescriptive language about tool usage
+- Updated sample prompts to focus on outcomes rather than implementation details
+- Clarified that the AI/LLM determines which tools to use based on context
+
+### Fixed
+- Documentation now properly sets user expectations about how MCP works
+- Removed misleading "The AI will use X tool" statements throughout docs
+
 ## [0.3.0-beta] - 2025-08-04
 
 ### Added
