@@ -95,21 +95,71 @@ Get comprehensive information about a command including its arguments.
 
 Execute a command on the spacecraft.
 
+**Note:** The `args` parameter accepts both JSON objects and JSON strings. If a string is provided, it will be automatically parsed.
+
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `command` | string | Yes | Command qualified name to execute |
-| `args` | object | No | Command arguments as key-value pairs |
+| `args` | object/string | No | Command arguments as a dictionary or JSON string |
 | `processor` | string | No | Target processor (default: "realtime") |
 | `dry_run` | boolean | No | Validate without execution (default: false) |
+| `comment` | string | No | Optional comment to attach to the command |
 | `sequence_number` | integer | No | Optional command sequence number |
 | `instance` | string | No | Yamcs instance |
+
+**Format Examples:**
+
+✅ **Example 1: Command WITH arguments** - args as object (preferred):
+```json
+{
+  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF",
+  "args": {"voltage_num": 1},
+  "comment": "Turning off voltage channel 1"
+}
+```
+
+✅ **Example 2: Command WITH arguments** - args as JSON string (also works):
+```json
+{
+  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF",
+  "args": "{\"voltage_num\": 1}",
+  "comment": "Turning off voltage channel 1"
+}
+```
+
+✅ **Example 3: Multiple arguments**:
+```json
+{
+  "command": "/YSS/SIMULATOR/SET_HEATER",
+  "args": {
+    "heater_id": 2,
+    "temperature": 25.5,
+    "duration": 300
+  },
+  "comment": "Setting heater 2 to 25.5°C for 5 minutes"
+}
+```
+
+✅ **Example 4: Command WITHOUT arguments**:
+```json
+{
+  "command": "/TSE/simulator/get_identification",
+  "comment": "Requesting system identification"
+}
+```
+
+**Important Notes:**
+- The tool now accepts both JSON objects and JSON strings for the `args` parameter
+- JSON strings will be automatically parsed to objects
+- Use `describe_command` first to see what arguments are required
+- Omit the `args` field entirely for commands that take no arguments
 
 **Example prompts:**
 - "Execute SWITCH_VOLTAGE_ON with voltage_num=2"
 - "Run the ENABLE_HEATER command in dry-run mode"
-- "Send SET_MODE command with mode='SAFE' to the realtime processor"
+- "Send SET_MODE command with mode='SAFE' to the realtime processor with comment 'Entering safe mode for maintenance'"
 
 **Sample response (dry run):**
 ```json
@@ -120,8 +170,8 @@ Execute a command on the spacecraft.
   "processor": "realtime",
   "instance": "simulator",
   "valid": true,
-  "validation_messages": "Command is valid",
-  "message": "Command '/YSS/SIMULATOR/SWITCH_VOLTAGE_ON' validated successfully"
+  "message": "Command '/YSS/SIMULATOR/SWITCH_VOLTAGE_ON' validated successfully",
+  "comment": null
 }
 ```
 
@@ -137,9 +187,11 @@ Execute a command on the spacecraft.
   "generation_time": "2024-01-15T12:34:56Z",
   "origin": "MCP",
   "sequence_number": 42,
+  "comment": "Routine voltage switch",
   "message": "Command '/YSS/SIMULATOR/SWITCH_VOLTAGE_ON' issued successfully"
 }
 ```
+
 
 ### commands/read_log
 

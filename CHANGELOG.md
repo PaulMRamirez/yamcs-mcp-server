@@ -16,6 +16,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.3.0-beta] - 2025-08-04
+
+### Added
+- Commands server for executing and managing spacecraft commands
+  - `commands/list_commands` - List available commands for execution
+  - `commands/describe_command` - Get detailed command information including arguments
+  - `commands/run_command` - Execute commands with full argument support
+  - `commands/read_log` - Read command execution history from archive
+- Robust handling of command arguments as both JSON objects and JSON strings
+  - Automatically parses JSON strings to objects for compatibility with Claude Desktop
+  - Addresses known issue where some MCP clients send args as strings instead of objects
+
+### Changed
+- Improved `run_command` to accept both `dict[str, Any]` and string arguments
+- Updated documentation to reflect that both argument formats are supported
+- Enhanced test coverage for command argument validation
+
+### Fixed
+- Command execution errors when Claude Desktop sends arguments as JSON strings
+- Input validation errors with message `'{"voltage_num": 1}' is not valid under any of the given schemas`
+
 ## [0.2.3-beta] - 2025-07-07
 
 ### Fixed

@@ -83,6 +83,7 @@ YAMCS_ENABLE_LINKS=true
 YAMCS_ENABLE_STORAGE=true
 YAMCS_ENABLE_INSTANCES=true
 YAMCS_ENABLE_ALARMS=true
+YAMCS_ENABLE_COMMANDS=true
 
 # Server settings
 MCP_TRANSPORT=stdio
@@ -161,6 +162,12 @@ The server exposes numerous tools organized by server:
 - `alarms_unshelve_alarm` - Unshelve an alarm
 - `alarms_clear_alarm` - Clear an alarm
 - `alarms_read_log` - Read alarm history
+
+#### Command Tools
+- `commands_list_commands` - List available commands for execution
+- `commands_describe_command` - Get detailed command information
+- `commands_run_command` - Execute a command (supports dry-run)
+- `commands_read_log` - Read command execution history
 
 ### Available Resources
 
@@ -245,6 +252,68 @@ yamcs-mcp-server/
 ├── scripts/                   # Test scripts
 └── CLAUDE.md                  # AI assistant guidance
 ```
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Input validation error" when executing commands
+
+**Problem:** Getting errors like `'{"voltage_num": 1}' is not valid under any of the given schemas`
+
+**Solution:** The `commands/run_command` tool now accepts both formats. The server will automatically parse JSON strings to objects. 
+
+Both formats are now supported:
+
+✅ **Args as object (preferred):**
+```json
+{
+  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF",
+  "args": {"voltage_num": 1}
+}
+```
+
+✅ **Args as JSON string (automatically parsed):**
+```json
+{
+  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF",
+  "args": "{\"voltage_num\": 1}"
+}
+```
+
+✅ **Command without arguments:**
+```json
+{
+  "command": "/TSE/simulator/get_identification"
+}
+```
+
+✅ **Multiple arguments:**
+```json
+{
+  "command": "/YSS/SIMULATOR/SET_HEATER",
+  "args": {
+    "heater_id": 2,
+    "temperature": 25.5,
+    "duration": 300
+  }
+}
+```
+
+#### Connection to Yamcs fails
+
+**Problem:** Server can't connect to Yamcs at startup
+
+**Solution:** 
+1. Ensure Yamcs is running: `docker ps | grep yamcs`
+2. Check the URL is correct: `curl http://localhost:8090/api`
+3. The server will continue in demo mode even if Yamcs is unavailable
+
+#### Enum serialization errors
+
+**Problem:** Errors about unable to serialize enum types
+
+**Solution:** This has been fixed in the latest version. Update to the latest version of the server.
 
 ## Contributing
 

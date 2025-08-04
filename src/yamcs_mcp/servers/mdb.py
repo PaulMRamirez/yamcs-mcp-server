@@ -182,11 +182,15 @@ class MDBServer(BaseYamcsServer):
                     arguments = []
                     if hasattr(cmd, "arguments"):
                         for arg in cmd.arguments:
+                            # Handle argument type - might be an enum
+                            arg_type = getattr(arg, "type", "unknown")
+                            arg_type = self._safe_enum_to_str(arg_type)
+                            
                             arguments.append(
                                 {
                                     "name": arg.name,
                                     "description": arg.description,
-                                    "type": getattr(arg, "type", "unknown"),
+                                    "type": arg_type,
                                     "required": getattr(arg, "required", True),
                                 }
                             )
@@ -306,3 +310,34 @@ class MDBServer(BaseYamcsServer):
                     return "\n".join(lines)
             except Exception as e:
                 return f"Error: {e!s}"
+
+    def _safe_enum_to_str(self, value: Any) -> Any:
+        """Safely convert enum values to strings for serialization.
+        
+        Args:
+            value: Value that might be an enum
+            
+        Returns:
+            String representation if enum, original value otherwise
+        """
+        if value is None:
+            return None
+        
+        # Check if it's an enum (has 'name' and 'value' attributes)
+        if hasattr(value, 'name') and hasattr(value, 'value'):
+            return str(value.name)
+        
+        # Check for Yamcs-specific enum types
+        if hasattr(value, '__class__'):
+            class_name = str(value.__class__)
+            # Handle known Yamcs enum types
+            if any(enum_type in class_name for enum_type in [
+                'Significance', 'ArgumentType', 'AlarmType', 'ParameterType'
+            ]):
+                # Try to get the string representation
+                if hasattr(value, 'name'):
+                    return str(value.name)
+                else:
+                    return str(value)
+        
+        return value

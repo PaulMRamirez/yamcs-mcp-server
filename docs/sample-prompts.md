@@ -48,6 +48,75 @@ Uses `mdb/list_commands` with search and `mdb/describe_command` for details.
 
 Provides detailed command information for operators.
 
+### Command Execution
+
+**Note:** The server accepts both JSON objects and JSON strings for command arguments. Objects are preferred, but strings will be automatically parsed.
+
+#### Commands WITH Arguments
+
+> "Execute SWITCH_VOLTAGE_OFF with voltage_num=1"
+
+The tool will correctly use:
+```json
+{
+  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF", 
+  "args": {"voltage_num": 1}
+}
+```
+
+> "Run ENABLE_HEATER with heater_id=2, temperature=25.5, and duration=300"
+
+The tool will correctly use:
+```json
+{
+  "command": "/YSS/SIMULATOR/ENABLE_HEATER", 
+  "args": {
+    "heater_id": 2, 
+    "temperature": 25.5,
+    "duration": 300
+  }
+}
+```
+
+#### Commands WITHOUT Arguments
+
+> "Execute the get_identification command"
+
+The tool will correctly use:
+```json
+{
+  "command": "/TSE/simulator/get_identification"
+}
+```
+Note: The `args` field is omitted entirely for commands with no arguments.
+
+> "Send the reset_counters command"
+
+The tool will correctly use:
+```json
+{
+  "command": "/YSS/SIMULATOR/reset_counters"
+}
+```
+
+#### Validation Before Execution
+
+> "Validate (dry-run) the SET_MODE command with mode='SAFE' before executing"
+
+Uses dry_run=true to validate without execution:
+```json
+{
+  "command": "/YSS/SIMULATOR/SET_MODE",
+  "args": {"mode": "SAFE"},
+  "dry_run": true
+}
+```
+
+### Command History
+> "Show me the last 10 commands executed today"
+
+Uses `commands/read_log` to review command history.
+
 ## Alarm Management
 
 ### Active Alarms

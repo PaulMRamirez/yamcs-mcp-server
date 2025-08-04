@@ -64,7 +64,7 @@ class CommandsServer(BaseYamcsServer):
                                 "qualified_name": cmd.qualified_name,
                                 "description": cmd.description,
                                 "abstract": cmd.abstract,
-                                "significance": getattr(cmd, "significance", None),
+                                "significance": self._safe_enum_to_str(getattr(cmd, "significance", None)),
                             }
                         )
 
@@ -101,10 +101,14 @@ class CommandsServer(BaseYamcsServer):
                     arguments = []
                     if hasattr(cmd, "arguments"):
                         for arg in cmd.arguments:
+                            # Handle argument type - might be an enum
+                            arg_type = getattr(arg, "type", "unknown")
+                            arg_type = self._safe_enum_to_str(arg_type)
+                            
                             arg_info = {
                                 "name": arg.name,
                                 "description": getattr(arg, "description", ""),
-                                "type": getattr(arg, "type", "unknown"),
+                                "type": arg_type,
                                 "required": getattr(arg, "required", True),
                                 "initial_value": getattr(arg, "initial_value", None),
                             }
@@ -125,7 +129,9 @@ class CommandsServer(BaseYamcsServer):
                         "abstract": cmd.abstract,
                         "arguments": arguments,
                         "significance": {
-                            "consequence_level": getattr(cmd, "consequence_level", "NORMAL"),
+                            "consequence_level": self._safe_enum_to_str(
+                                getattr(cmd, "consequence_level", "NORMAL")
+                            ),
                             "reason": getattr(cmd, "reason_for_consequence", None),
                         },
                         "constraints": getattr(cmd, "constraints", []),
@@ -136,21 +142,32 @@ class CommandsServer(BaseYamcsServer):
         @self.tool()
         async def run_command(
             command: str,
-            args: dict[str, Any] | None = None,
+            args: dict[str, Any] | str | None = None,  # Accept both dict and string
             processor: str = "realtime",
             dry_run: bool = False,
+            comment: str | None = None,
             sequence_number: int | None = None,
             instance: str | None = None,
         ) -> dict[str, Any]:
             """Execute a command on Yamcs.
 
+            To execute SWITCH_VOLTAGE_OFF with voltage_num=1, call this tool with:
+            command="/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF" args={"voltage_num": 1}
+            
+            To execute with multiple arguments:
+            command="/YSS/SIMULATOR/SOME_CMD" args={"arg1": "value1", "arg2": 123}
+            
+            The args parameter should be a dictionary mapping argument names to values.
+            If you pass a JSON string, it will be automatically parsed.
+
             Args:
-                command: Command qualified name to execute
-                args: Command arguments as key-value pairs
-                processor: Target processor (default: "realtime")
-                dry_run: Validate command without execution (default: False)
-                sequence_number: Optional command sequence number
-                instance: Yamcs instance (uses default if not specified)
+                command: Full qualified command name like /YSS/SIMULATOR/SWITCH_VOLTAGE_OFF
+                args: Dictionary of command arguments like {"voltage_num": 1} or JSON string '{"voltage_num": 1}'
+                processor: Processor name, usually "realtime"
+                dry_run: If true, validate without executing
+                comment: Optional comment for the command
+                sequence_number: Optional sequence number
+                instance: Yamcs instance name
 
             Returns:
                 dict: Command execution result with ID and status
@@ -160,52 +177,103 @@ class CommandsServer(BaseYamcsServer):
                     target_instance = instance or self.config.instance
                     proc_client = client.get_processor(target_instance, processor)
 
-                    # Build command arguments
-                    command_args = args or {}
+                    # Handle args - convert string to dict if needed
+                    command_args = {}
+                    if args:
+                        if isinstance(args, str):
+                            # Claude Desktop sometimes sends args as a JSON string
+                            # Parse it to a dict
+                            import json
+                            try:
+                                command_args = json.loads(args)
+                                self.logger.info(
+                                    f"Automatically parsed JSON string args for command {command}"
+                                )
+                            except json.JSONDecodeError as e:
+                                # Try to provide helpful error message
+                                return {
+                                    "error": True,
+                                    "message": (
+                                        f"Failed to parse args as JSON. "
+                                        f"Received: '{args}'. "
+                                        f"Error: {e}. "
+                                        f"Please ensure args is valid JSON like: "
+                                        f'{{"voltage_num": 1}}'
+                                    ),
+                                    "operation": "run_command",
+                                    "command": command,
+                                }
+                        elif isinstance(args, dict):
+                            command_args = args
+                        else:
+                            return {
+                                "error": True,
+                                "message": f"Invalid args type: expected dict or JSON string, got {type(args).__name__}",
+                                "operation": "run_command",
+                                "command": command,
+                            }
                     
-                    # Prepare options
-                    issue_options = {
-                        "args": command_args,
+                    # Prepare issue_command parameters
+                    issue_params = {
+                        "args": command_args if command_args else None,
                         "dry_run": dry_run,
                     }
                     
+                    if comment is not None:
+                        issue_params["comment"] = comment
+                    
                     if sequence_number is not None:
-                        issue_options["sequence_number"] = sequence_number
+                        issue_params["sequence_number"] = sequence_number
 
-                    # Issue the command
-                    if dry_run:
-                        # For dry run, validate the command
-                        result = proc_client.validate_command(command, **command_args)
-                        return {
-                            "success": True,
-                            "dry_run": True,
-                            "command": command,
-                            "processor": processor,
-                            "instance": target_instance,
-                            "valid": not bool(result),  # Empty result means valid
-                            "validation_messages": result if result else "Command is valid",
-                            "message": f"Command '{command}' validated successfully"
-                            if not result
-                            else f"Command validation found issues: {result}",
-                        }
-                    else:
-                        # Execute the command
-                        cmd_result = proc_client.issue_command(command, **command_args)
+                    # Issue the command (works for both dry_run and actual execution)
+                    try:
+                        cmd_result = proc_client.issue_command(command, **issue_params)
                         
-                        return {
-                            "success": True,
-                            "dry_run": False,
-                            "command": command,
-                            "processor": processor,
-                            "instance": target_instance,
-                            "command_id": cmd_result.id if hasattr(cmd_result, "id") else None,
-                            "generation_time": cmd_result.generation_time.isoformat()
-                            if hasattr(cmd_result, "generation_time")
-                            else None,
-                            "origin": getattr(cmd_result, "origin", None),
-                            "sequence_number": getattr(cmd_result, "sequence_number", None),
-                            "message": f"Command '{command}' issued successfully",
-                        }
+                        if dry_run:
+                            # Dry run succeeded - command is valid
+                            return {
+                                "success": True,
+                                "dry_run": True,
+                                "command": command,
+                                "processor": processor,
+                                "instance": target_instance,
+                                "valid": True,
+                                "message": f"Command '{command}' validated successfully",
+                                "comment": comment,
+                            }
+                        else:
+                            # Actual command execution
+                            return {
+                                "success": True,
+                                "dry_run": False,
+                                "command": command,
+                                "processor": processor,
+                                "instance": target_instance,
+                                "command_id": cmd_result.id if hasattr(cmd_result, "id") else None,
+                                "generation_time": cmd_result.generation_time.isoformat()
+                                if hasattr(cmd_result, "generation_time")
+                                else None,
+                                "origin": getattr(cmd_result, "origin", None),
+                                "sequence_number": getattr(cmd_result, "sequence_number", None),
+                                "comment": comment,
+                                "message": f"Command '{command}' issued successfully",
+                            }
+                    except Exception as validation_error:
+                        if dry_run:
+                            # Dry run failed - validation errors
+                            return {
+                                "success": False,
+                                "dry_run": True,
+                                "command": command,
+                                "processor": processor,
+                                "instance": target_instance,
+                                "valid": False,
+                                "validation_error": str(validation_error),
+                                "message": f"Command validation failed: {validation_error}",
+                            }
+                        else:
+                            # Re-raise for actual execution errors
+                            raise
 
             except Exception as e:
                 return self._handle_error("run_command", e)
@@ -243,31 +311,43 @@ class CommandsServer(BaseYamcsServer):
                     commands = []
                     count = 0
                     
-                    # List commands from archive
-                    cmd_iterator = archive_client.list_commands(
-                        start=start_time,
-                        stop=stop_time,
-                        limit=lines,
-                    )
+                    # Use list_command_history for accessing command history
+                    # Note: list_command_history doesn't accept limit parameter directly
+                    try:
+                        if hasattr(archive_client, 'list_command_history'):
+                            # list_command_history doesn't take limit directly
+                            cmd_iterator = archive_client.list_command_history(
+                                start=start_time,
+                                stop=stop_time,
+                            )
+                        else:
+                            # Fallback for older versions
+                            cmd_iterator = []
+                    except Exception:
+                        # Last resort - return empty
+                        cmd_iterator = []
                     
                     for cmd_entry in cmd_iterator:
-                        # Apply command name filter if specified
-                        if command and command not in cmd_entry.name:
-                            continue
+                        # Filter by command name if specified
+                        cmd_name = getattr(cmd_entry, "command_name", getattr(cmd_entry, "name", None))
+                        if command and cmd_name:
+                            if command not in cmd_name:
+                                continue
                         
                         commands.append(
                             {
-                                "name": cmd_entry.name,
+                                "name": cmd_name,
+                                "id": getattr(cmd_entry, "id", None),
                                 "generation_time": cmd_entry.generation_time.isoformat()
-                                if cmd_entry.generation_time
+                                if hasattr(cmd_entry, "generation_time") and cmd_entry.generation_time
                                 else None,
                                 "origin": getattr(cmd_entry, "origin", None),
                                 "sequence_number": getattr(cmd_entry, "sequence_number", None),
                                 "username": getattr(cmd_entry, "username", None),
                                 "queue": getattr(cmd_entry, "queue", None),
                                 "source": getattr(cmd_entry, "source", None),
-                                "binary": getattr(cmd_entry, "binary", None),
-                                "unprocessed_binary": getattr(cmd_entry, "unprocessed_binary", None),
+                                "comment": getattr(cmd_entry, "comment", None),
+                                "assignments": self._format_assignments(cmd_entry),
                                 "acknowledge": self._format_acknowledge_info(cmd_entry),
                             }
                         )
@@ -290,6 +370,37 @@ class CommandsServer(BaseYamcsServer):
 
             except Exception as e:
                 return self._handle_error("read_log", e)
+
+    def _safe_enum_to_str(self, value: Any) -> Any:
+        """Safely convert enum values to strings for serialization.
+        
+        Args:
+            value: Value that might be an enum
+            
+        Returns:
+            String representation if enum, original value otherwise
+        """
+        if value is None:
+            return None
+        
+        # Check if it's an enum (has 'name' and 'value' attributes)
+        if hasattr(value, 'name') and hasattr(value, 'value'):
+            return str(value.name)
+        
+        # Check for Yamcs-specific enum types
+        if hasattr(value, '__class__'):
+            class_name = str(value.__class__)
+            # Handle known Yamcs enum types
+            if any(enum_type in class_name for enum_type in [
+                'Significance', 'ArgumentType', 'AlarmType', 'ParameterType'
+            ]):
+                # Try to get the string representation
+                if hasattr(value, 'name'):
+                    return str(value.name)
+                else:
+                    return str(value)
+        
+        return value
 
     def _parse_time(self, time_str: str) -> datetime | None:
         """Parse time string to datetime.
@@ -328,6 +439,26 @@ class CommandsServer(BaseYamcsServer):
         except ValueError:
             # Return None if parsing fails
             return None
+
+    def _format_assignments(self, cmd_entry: Any) -> dict[str, Any] | None:
+        """Format command argument assignments.
+
+        Args:
+            cmd_entry: Command entry from archive
+
+        Returns:
+            dict with argument assignments or None
+        """
+        if not hasattr(cmd_entry, "assignments"):
+            return None
+
+        assignments = {}
+        for assignment in getattr(cmd_entry, "assignments", []):
+            name = getattr(assignment, "name", "unknown")
+            value = getattr(assignment, "value", None)
+            assignments[name] = value
+
+        return assignments if assignments else None
 
     def _format_acknowledge_info(self, cmd_entry: Any) -> dict[str, Any] | None:
         """Format command acknowledgment information.

@@ -54,6 +54,7 @@ class TestYamcsMCPServer:
             patch("yamcs_mcp.server.StorageServer") as mock_storage_class,
             patch("yamcs_mcp.server.InstancesServer") as mock_instance_class,
             patch("yamcs_mcp.server.AlarmsServer") as mock_alarms_class,
+            patch("yamcs_mcp.server.CommandsServer") as mock_commands_class,
         ):
             # Create mock FastMCP instance
             mock_fastmcp = Mock()
@@ -66,6 +67,7 @@ class TestYamcsMCPServer:
             mock_storage = Mock()
             mock_instance = Mock()
             mock_alarms = Mock()
+            mock_commands = Mock()
 
             # Set return values
             mock_mdb_class.return_value = mock_mdb
@@ -74,6 +76,7 @@ class TestYamcsMCPServer:
             mock_storage_class.return_value = mock_storage
             mock_instance_class.return_value = mock_instance
             mock_alarms_class.return_value = mock_alarms
+            mock_commands_class.return_value = mock_commands
 
             # Create server
             YamcsMCPServer(mock_config)
@@ -97,15 +100,19 @@ class TestYamcsMCPServer:
             mock_alarms_class.assert_called_once_with(
                 mock_client_manager, mock_config.yamcs
             )
+            mock_commands_class.assert_called_once_with(
+                mock_client_manager, mock_config.yamcs
+            )
 
             # Verify mount was called on main server with each sub-server
-            assert mock_fastmcp.mount.call_count == 6
+            assert mock_fastmcp.mount.call_count == 7
             mock_fastmcp.mount.assert_any_call(mock_mdb, prefix="mdb")
             mock_fastmcp.mount.assert_any_call(mock_processor, prefix="processors")
             mock_fastmcp.mount.assert_any_call(mock_link, prefix="links")
             mock_fastmcp.mount.assert_any_call(mock_storage, prefix="storage")
             mock_fastmcp.mount.assert_any_call(mock_instance, prefix="instances")
             mock_fastmcp.mount.assert_any_call(mock_alarms, prefix="alarms")
+            mock_fastmcp.mount.assert_any_call(mock_commands, prefix="commands")
 
     def test_server_disabling(self, mock_config, mock_client_manager):
         """Test that servers can be disabled via config."""
