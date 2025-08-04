@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "yamcs-mcp-server"
 version = "0.3.0-beta"
-description = "MCP server for Yamcs Mission Control System"
+description = "Model Context Protocol (MCP) server for Yet Another Mission Control System (Yamcs)"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
