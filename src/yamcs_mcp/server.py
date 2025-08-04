@@ -15,6 +15,7 @@ from .client import YamcsClientManager
 from .config import Config
 from .servers import (
     AlarmsServer,
+    CommandsServer,
     InstancesServer,
     LinksServer,
     MDBServer,
@@ -116,6 +117,12 @@ class YamcsMCPServer:
             self.logger.info("Mounting Alarms server")
             alarms_server = AlarmsServer(self.client_manager, self.config.yamcs)
             self.mcp.mount(alarms_server, prefix="alarms")
+            mounted_count += 1
+
+        if self.config.yamcs.enable_commands:
+            self.logger.info("Mounting Commands server")
+            commands_server = CommandsServer(self.client_manager, self.config.yamcs)
+            self.mcp.mount(commands_server, prefix="commands")
             mounted_count += 1
 
         self.logger.info(f"Mounted {mounted_count} servers")

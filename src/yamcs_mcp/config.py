@@ -35,6 +35,7 @@ class YamcsConfig(BaseSettings):
     enable_storage: bool = True
     enable_instances: bool = True
     enable_alarms: bool = True
+    enable_commands: bool = True
 
     # Server settings
     server_name: str = "YamcsServer"

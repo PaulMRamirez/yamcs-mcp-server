@@ -58,6 +58,7 @@ nav:
     - Storage Tools: tools/storage.md
     - Instance Tools: tools/instances.md
     - Alarm Tools: tools/alarms.md
+    - Command Tools: tools/commands.md
   - Development:
     - Architecture: architecture.md
     - Contributing: development.md

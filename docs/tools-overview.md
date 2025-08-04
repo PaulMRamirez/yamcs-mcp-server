@@ -13,6 +13,7 @@ This reference describes all tools and resources available through the Yamcs MCP
 | [Storage](tools/storage.md) | Object storage operations | 5 |
 | [Instances](tools/instances.md) | Yamcs instance control | 4 |
 | [Alarms](tools/alarms.md) | Alarm monitoring and management | 7 |
+| [Commands](tools/commands.md) | Command execution and history | 4 |
 
 ## Server Tools
 
@@ -53,6 +54,7 @@ Test the connection to the Yamcs server.
 | `links/list_links` | View all data links | "Show me the status of all links" |
 | `alarms/list_alarms` | View active alarms | "What alarms are currently active?" |
 | `instances/list_instances` | List Yamcs instances | "What instances are available?" |
+| `commands/run_command` | Execute spacecraft commands | "Send the ENABLE_HEATER command" |
 
 ### Tool Naming Pattern
 
@@ -74,6 +76,7 @@ Resources provide pre-formatted information summaries:
 | `storage://overview` | Storage usage overview |
 | `instances://list` | Summary of all Yamcs instances |
 | `alarms://list` | Summary of active alarms |
+| `commands://queue` | Current command queue status |
 
 ## Using Tools Effectively
 
@@ -139,5 +142,6 @@ Some tools require specific Yamcs components:
   - [Storage Tools](tools/storage.md) - File operations
   - [Instance Tools](tools/instances.md) - Instance management
   - [Alarm Tools](tools/alarms.md) - Alarm handling
+  - [Command Tools](tools/commands.md) - Command execution
 - Review [Sample Prompts](sample-prompts.md) for practical examples
 - Check [Configuration](configuration.md) to enable/disable components
