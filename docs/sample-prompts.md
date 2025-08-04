@@ -7,46 +7,46 @@ This page provides example prompts you can use with the Yamcs MCP Server when co
 ### Overall System Check
 > "Check the health of the Yamcs server and list all running instances with their current status"
 
-This will use `health_check`, `test_connection`, and `instances/list_instances` tools to give you a comprehensive system overview.
+Get a comprehensive overview of your Yamcs system health and operational status.
 
 ### Link Status Monitoring
 > "Show me all data links and highlight any that are disabled or have errors"
 
-Uses `links/list_links` to check telemetry and command link status.
+Monitor the status of telemetry and command links in your system.
 
 ### Processor Status
 > "What processors are running on the simulator instance? Are they all operational?"
 
-Combines `processors/list_processors` with status checking.
+Check the operational status of data processors in a specific instance.
 
 ## Telemetry & Parameters
 
 ### Finding Parameters
 > "Find all battery-related parameters in the mission database"
 
-Uses `mdb/list_parameters` with search patterns to locate specific telemetry.
+Search for specific telemetry parameters by name or subsystem.
 
 ### Parameter Details
 > "Tell me about the BatteryVoltage parameter - what are its units, type, and data source?"
 
-Uses `mdb/describe_parameter` to get detailed parameter information.
+Get detailed information about specific telemetry parameters.
 
 ### System Overview
 > "List all space systems and show me what parameters are available in the power subsystem"
 
-Combines `mdb/list_space_systems` and `mdb/list_parameters` with filtering.
+Explore the organization of parameters within different subsystems.
 
 ## Commanding
 
 ### Available Commands
 > "What commands are available for voltage control? Show me their arguments"
 
-Uses `mdb/list_commands` with search and `mdb/describe_command` for details.
+Discover available commands and their required arguments.
 
 ### Command Structure
 > "Describe the SWITCH_VOLTAGE command including all its arguments and their types"
 
-Provides detailed command information for operators.
+Get detailed command information including argument specifications.
 
 ### Command Execution
 
@@ -56,134 +56,100 @@ Provides detailed command information for operators.
 
 > "Execute SWITCH_VOLTAGE_OFF with voltage_num=1"
 
-The tool will correctly use:
-```json
-{
-  "command": "/YSS/SIMULATOR/SWITCH_VOLTAGE_OFF", 
-  "args": {"voltage_num": 1}
-}
-```
+Execute a command that requires a single argument.
 
 > "Run ENABLE_HEATER with heater_id=2, temperature=25.5, and duration=300"
 
-The tool will correctly use:
-```json
-{
-  "command": "/YSS/SIMULATOR/ENABLE_HEATER", 
-  "args": {
-    "heater_id": 2, 
-    "temperature": 25.5,
-    "duration": 300
-  }
-}
-```
+Execute a command with multiple arguments.
 
 #### Commands WITHOUT Arguments
 
 > "Execute the get_identification command"
 
-The tool will correctly use:
-```json
-{
-  "command": "/TSE/simulator/get_identification"
-}
-```
-Note: The `args` field is omitted entirely for commands with no arguments.
+Execute a command that doesn't require any arguments.
 
 > "Send the reset_counters command"
 
-The tool will correctly use:
-```json
-{
-  "command": "/YSS/SIMULATOR/reset_counters"
-}
-```
+Another example of executing a command without arguments.
 
 #### Validation Before Execution
 
 > "Validate (dry-run) the SET_MODE command with mode='SAFE' before executing"
 
-Uses dry_run=true to validate without execution:
-```json
-{
-  "command": "/YSS/SIMULATOR/SET_MODE",
-  "args": {"mode": "SAFE"},
-  "dry_run": true
-}
-```
+Test command validity without actually executing it.
 
 ### Command History
 > "Show me the last 10 commands executed today"
 
-Uses `commands/read_log` to review command history.
+Review recently executed commands and their status.
 
 ## Alarm Management
 
 ### Active Alarms
 > "Show me all active alarms on the realtime processor, grouped by severity"
 
-Uses `alarms/list_alarms` to monitor current alarm state.
+Monitor current alarm states across your system.
 
 ### Alarm History
 > "What alarms occurred in the last hour? Which ones were acknowledged?"
 
-Uses `alarms/read_log` with time filtering.
+Review historical alarm data with acknowledgment status.
 
 ### Alarm Response
 > "There's a critical battery voltage alarm (sequence 1). Acknowledge it with comment 'Under investigation'"
 
-Uses `alarms/acknowledge_alarm` for alarm management.
+Acknowledge and manage active alarms with comments.
 
 ### Alarm Investigation
 > "Show me the details of the BatteryVoltage alarm and its history for today"
 
-Combines `alarms/describe_alarm` and `alarms/read_log` for investigation.
+Investigate specific alarms and their historical patterns.
 
 ## Data Management
 
 ### Storage Overview
 > "List all storage buckets and show me what's in the telemetry bucket"
 
-Uses `storage/list_buckets` and `storage/list_objects`.
+Explore available storage buckets and their contents.
 
 ### Data Upload
 > "Upload this configuration file to the configs bucket as 'mission-config-v2.json'"
 
-Uses `storage/upload_object` for data management.
+Manage data uploads to Yamcs storage buckets.
 
 ## Troubleshooting Scenarios
 
 ### Link Troubleshooting
 > "The tm_realtime link seems to be down. Show me its status and try to enable it"
 
-Combines `links/describe_link` and `links/enable_link`.
+Diagnose and resolve data link issues.
 
 ### Multi-System Check
 > "Check if the simulator instance is running, list its processors, verify all links are enabled, and show any active alarms"
 
-Comprehensive health check using multiple tools.
+Perform comprehensive system health checks.
 
 ### Historical Analysis
 > "Show me all alarms from yesterday, focusing on any battery or power-related issues"
 
-Uses `alarms/read_log` with time range and name filtering.
+Analyze historical data for specific subsystems or time periods.
 
 ## Complex Scenarios
 
 ### Pre-Pass Checklist
 > "Prepare for the next satellite pass: verify all links are enabled, check for any active alarms, confirm the realtime processor is running, and list available commanding capabilities"
 
-Combines multiple tools for operational readiness.
+Prepare for operational activities with comprehensive system checks.
 
 ### Subsystem Analysis
 > "Analyze the power subsystem: list all power-related parameters, show any power commands, and check for power-related alarms in the last 24 hours"
 
-Deep dive into a specific subsystem using MDB and alarm tools.
+Perform deep analysis of specific spacecraft subsystems.
 
 ### Shift Handover
 > "Generate a shift handover report: list all instances and their status, show active alarms with acknowledgment status, display link statistics, and identify any disabled components"
 
-Comprehensive status report using multiple servers.
+Create comprehensive status reports for operational handovers.
 
 ## Tips for Effective Prompts
 

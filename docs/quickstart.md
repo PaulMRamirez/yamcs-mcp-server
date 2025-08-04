@@ -86,27 +86,27 @@ Once connected to your AI assistant, try these prompts:
 ### Basic Health Check
 > "Check if the MCP server is healthy and connected to Yamcs"
 
-The AI will use the `health_check` tool to verify connectivity.
+Verify the connection between the MCP server and Yamcs.
 
 ### View System Status
 > "Show me all running instances and their processors"
 
-The AI will use `instances/list_instances` and show you the system state.
+Get an overview of your Yamcs system state.
 
 ### Monitor Telemetry
 > "List all battery-related parameters"
 
-The AI will use `mdb/list_parameters` to find relevant telemetry.
+Find and monitor specific telemetry parameters.
 
 ### Check Data Links
 > "Show me the status of all data links"
 
-The AI will use `links/list_links` to display link health.
+Monitor the health of your telemetry and command links.
 
 ### View Alarms
 > "Are there any active alarms?"
 
-The AI will use `alarms/list_alarms` to check for issues.
+Check for any active system alarms or issues.
 
 ## Common Operations
 

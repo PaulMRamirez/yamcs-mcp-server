@@ -19,14 +19,16 @@ Unlike REST APIs that you call directly with code, MCP servers expose **tools** 
 
 ### Tools
 
-Tools are functions the AI can call to perform actions or retrieve data. When you ask "Show me all active alarms", the AI uses the `alarms/list_alarms` tool behind the scenes.
+Tools are functions the AI can call to perform actions or retrieve data. When you ask "Show me all active alarms", the AI selects appropriate tools to fulfill your request.
 
 **Example interaction:**
 ```
 You: "What's the battery voltage?"
-AI: [Uses mdb/describe_parameter tool with parameter="/YSS/SIMULATOR/BatteryVoltage"]
+AI: [Selects and calls appropriate tool to get parameter information]
 AI: "The battery voltage is currently 28.5V"
 ```
+
+Note: The AI determines which tools to use based on your request. The specific tools called may vary depending on the context and the AI's interpretation of your needs.
 
 ### Resources
 
