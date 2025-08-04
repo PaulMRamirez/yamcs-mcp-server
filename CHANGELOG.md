@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - N/A
 
+## [0.3.2-beta] - 2025-08-04
+
+### Fixed
+- AttributeError when accessing 'alias' attribute on Parameter objects in mdb_get_parameter
+- Changed all parameter attribute access to use getattr() with None defaults for safety
+- Prevents errors when yamcs-python Parameter objects lack certain optional attributes
+
 ## [0.3.1-beta] - 2025-08-04
 
 ### Changed

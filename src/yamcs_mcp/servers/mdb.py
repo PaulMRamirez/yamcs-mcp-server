@@ -102,11 +102,12 @@ class MDBServer(BaseYamcsServer):
                     return {
                         "name": param.name,
                         "qualified_name": param.qualified_name,
-                        "alias": param.alias,
+                        "alias": getattr(param, "alias", None),  # May not exist
                         "type": param.type,
-                        "units": param.units,
-                        "description": param.description,
-                        "data_source": param.data_source,
+                        "units": getattr(param, "units", None),
+                        "description": getattr(param, "description", None),
+                        "data_source": getattr(param, "data_source", None),
+                        "short_description": getattr(param, "short_description", None),
                     }
             except Exception as e:
                 return self._handle_error("get_parameter", e)
