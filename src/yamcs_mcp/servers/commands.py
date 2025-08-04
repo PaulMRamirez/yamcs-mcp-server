@@ -24,7 +24,6 @@ class CommandsServer(BaseYamcsServer):
         """
         super().__init__("Commands", client_manager, config)
         self._register_command_tools()
-        self._register_command_resources()
 
     def _register_command_tools(self) -> None:
         """Register command execution and history tools."""
@@ -291,35 +290,6 @@ class CommandsServer(BaseYamcsServer):
 
             except Exception as e:
                 return self._handle_error("read_log", e)
-
-    def _register_command_resources(self) -> None:
-        """Register command-related resources."""
-
-        @self.resource("commands://queue")
-        async def command_queue() -> str:
-            """Get current command queue status.
-
-            Returns:
-                str: Formatted command queue information
-            """
-            try:
-                async with self.client_manager.get_client() as client:
-                    # Get processor to check command queue
-                    proc_client = client.get_processor(
-                        self.config.instance, "realtime"
-                    )
-                    
-                    # Format queue status
-                    return (
-                        f"Command Queue Status\n"
-                        f"====================\n"
-                        f"Instance: {self.config.instance}\n"
-                        f"Processor: realtime\n"
-                        f"\nNote: Use 'read_log' tool for command history\n"
-                        f"Use 'run_command' tool to execute commands"
-                    )
-            except Exception as e:
-                return f"Error accessing command queue: {e}"
 
     def _parse_time(self, time_str: str) -> datetime | None:
         """Parse time string to datetime.

@@ -76,7 +76,6 @@ Resources provide pre-formatted information summaries:
 | `storage://overview` | Storage usage overview |
 | `instances://list` | Summary of all Yamcs instances |
 | `alarms://list` | Summary of active alarms |
-| `commands://queue` | Current command queue status |
 
 ## Using Tools Effectively
 

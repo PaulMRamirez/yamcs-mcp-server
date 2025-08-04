@@ -197,14 +197,6 @@ Read command execution history from the archive.
 }
 ```
 
-## Resources
-
-### commands://queue
-
-Provides information about the current command queue status.
-
-**Example prompt:** "Show me the command queue resource"
-
 ## Command Safety
 
 ### Dry Run Mode
