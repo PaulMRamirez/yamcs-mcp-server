@@ -47,18 +47,20 @@ nav:
     - Quick Start: quickstart.md
     - Configuration: configuration.md
   - User Guide:
-    - Architecture: architecture.md
-    - Servers:
-      - MDB Server: servers/mdb.md
-      - Alarms Server: servers/alarms.md
-    - Examples: examples.md
+    - Understanding MCP: mcp-concepts.md
+    - Sample Prompts: sample-prompts.md
+    - Troubleshooting: troubleshooting.md
+  - Tools Reference:
+    - Overview: tools-overview.md
+    - MDB Tools: tools/mdb.md
+    - Processor Tools: tools/processors.md
+    - Link Tools: tools/links.md
+    - Storage Tools: tools/storage.md
+    - Instance Tools: tools/instances.md
+    - Alarm Tools: tools/alarms.md
   - Development:
-    - Development Guide: development.md
-  - API Reference:
-    - Overview: api.md
-    - Server: api/server.md
-    - Servers: api/servers.md
-  - Troubleshooting: troubleshooting.md
+    - Architecture: architecture.md
+    - Contributing: development.md
 
 plugins:
   - search:

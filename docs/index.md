@@ -1,68 +1,140 @@
 # Yamcs MCP Server
 
-Welcome to the Yamcs MCP Server documentation!
+Enable AI assistants to interact with your Yamcs mission control system through the Model Context Protocol.
 
-## Overview
+## What is This?
 
-Yamcs MCP Server is a Model Context Protocol (MCP) server that provides programmatic access to [Yamcs](https://yamcs.org/) (Yet Another Mission Control System) through a standardized interface. It enables AI assistants and other tools to interact with Yamcs instances for space mission operations.
+The Yamcs MCP Server is a **Model Context Protocol server** that bridges AI assistants (like Claude) with [Yamcs](https://yamcs.org/) mission control systems. It's not a library or API you call directly - it's a server that AI assistants use to help you operate spacecraft.
 
-## Features
+### How It Works
 
-- **Full Yamcs Integration**: Access all major Yamcs subsystems through MCP
-- **Modular Server Architecture**: 
-    - Mission Database (MDB) - Parameter and command definitions
-    - Processors - Real-time telemetry and command execution
-    - Links - Data link monitoring and control
-    - Storage - Object storage operations
-    - Instances - Yamcs instance management
-    - Alarms - Alarm monitoring and acknowledgment
-- **Server Composition**: Each subsystem is an independent FastMCP server
-- **Async/Await Support**: Built on modern Python async patterns
-- **Type Safety**: Full type hints and validation with Pydantic
-- **Extensible**: Easy to add new servers and capabilities
+```mermaid
+graph LR
+    A[You] -->|Natural Language| B[AI Assistant]
+    B -->|MCP Protocol| C[Yamcs MCP Server]
+    C -->|HTTP/WebSocket| D[Yamcs]
+    D -->|Telemetry/Commands| E[Spacecraft]
+```
+
+You ask questions in plain English, and the AI uses MCP tools to interact with Yamcs on your behalf.
+
+## Key Features
+
+✨ **Natural Language Operations** - No need to memorize commands or write code  
+🛠️ **Comprehensive Tool Set** - Access all major Yamcs subsystems  
+🚀 **Mission-Ready** - Monitor telemetry, manage alarms, control data links  
+🔒 **Safe Operations** - Built-in validation and error handling  
+📊 **Smart Interpretation** - AI understands context and presents data clearly
 
 ## Quick Example
 
-```python
-from yamcs_mcp import YamcsMCPServer
-from yamcs_mcp.config import Config
+Instead of writing code or using complex commands:
 
-# Create configuration
-config = Config.from_env()
+**You say:**
+> "Check if we're ready for the next satellite pass"
 
-# Create and run server
-server = YamcsMCPServer(config)
-await server.run()
-```
+**The AI responds:**
+> All systems are ready for the pass:
+> - ✅ Simulator instance: RUNNING
+> - ✅ Realtime processor: Active
+> - ✅ TM downlink: Enabled and connected
+> - ✅ TC uplink: Enabled and connected
+> - ⚠️ 2 active alarms (1 critical - BatteryVoltage low)
+> 
+> Recommendation: Acknowledge the battery alarm before pass starts.
 
-## Use Cases
+## What Can It Do?
 
-- **AI-Assisted Operations**: Enable AI assistants to help with mission operations
-- **Automation**: Build automated workflows that interact with Yamcs
-- **Integration**: Connect Yamcs to other tools through the MCP protocol
-- **Analysis**: Query historical data and analyze mission performance
+The MCP server provides tools organized into functional areas:
+
+| Category | Capabilities |
+|----------|--------------|
+| **Mission Database** | Browse parameters, commands, and space systems |
+| **Processors** | Monitor real-time and replay processors |
+| **Data Links** | Control telemetry and command links |
+| **Alarms** | View, acknowledge, and manage alarms |
+| **Storage** | Access archived telemetry and files |
+| **Instances** | Manage Yamcs instances and services |
 
 ## Getting Started
 
-1. [Install](installation.md) the yamcs-mcp-server package
-2. [Configure](configuration.md) your Yamcs connection
-3. Follow the [Quick Start](quickstart.md) guide
-4. Explore the [Examples](examples.md)
+### 1. Install
+```bash
+pip install yamcs-mcp-server
+```
+
+### 2. Configure
+```bash
+export YAMCS_URL="http://localhost:8090"
+export YAMCS_INSTANCE="simulator"
+```
+
+### 3. Connect to AI
+Add to Claude Desktop or another MCP-compatible AI assistant
+
+### 4. Start Operating
+Ask questions like:
+- "Show me all active alarms"
+- "Is the telemetry link working?"
+- "List battery-related parameters"
+
+See the [Quick Start](quickstart.md) guide for detailed setup instructions.
+
+## Who Is This For?
+
+- **Mission Operators** - Simplify daily operations with natural language
+- **Engineers** - Quick system checks without memorizing commands
+- **Training** - Learn mission operations with AI assistance
+- **Automation** - Build intelligent automation workflows
+
+## How Is This Different?
+
+| Traditional Approach | With MCP Server |
+|---------------------|-----------------|
+| Write Python scripts | Ask in plain English |
+| Memorize command syntax | Describe what you want |
+| Parse JSON responses | Get formatted answers |
+| Handle errors manually | AI manages complexity |
+
+## Architecture
+
+The server uses a modular architecture with each Yamcs subsystem as an independent MCP server:
+
+- **FastMCP Foundation** - Built on FastMCP 2.x for reliability
+- **Server Composition** - Each subsystem is a complete MCP server
+- **Type Safety** - Full type hints and Pydantic validation
+- **Async Operations** - Non-blocking I/O throughout
+
+Learn more in the [Architecture](architecture.md) documentation.
+
+## Documentation
+
+### For Users
+- [Understanding MCP](mcp-concepts.md) - Learn how MCP works
+- [Quick Start](quickstart.md) - Get running in minutes
+- [Sample Prompts](sample-prompts.md) - Example interactions
+- [Tools Reference](tools-overview.md) - Available tools
+
+### For Developers
+- [Architecture](architecture.md) - System design
+- [Development](development.md) - Contributing guide
+- [Configuration](configuration.md) - Advanced setup
+
+### Help
+- [Troubleshooting](troubleshooting.md) - Common issues
 
 ## Requirements
 
-- Python 3.11 or higher
-- Yamcs 5.8.0 or higher
-- Access to a Yamcs instance
-
-## Documentation Structure
-
-- **Getting Started**: Installation, configuration, and quick start guides
-- **User Guide**: Detailed information about architecture and components
-- **API Reference**: Complete API documentation
-- **Development**: Contributing guidelines and development setup
-- **Troubleshooting**: Common issues and solutions
+- Python 3.11+
+- Yamcs 5.8.0+
+- An MCP-compatible AI assistant (like Claude Desktop)
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+MIT License - See LICENSE file for details
+
+## Links
+
+- [GitHub Repository](https://github.com/PaulMRamirez/yamcs-mcp-server)
+- [Yamcs Documentation](https://docs.yamcs.org)
+- [MCP Specification](https://modelcontextprotocol.io)

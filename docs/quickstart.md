@@ -1,137 +1,177 @@
 # Quick Start
 
-This guide will help you get started with Yamcs MCP Server in minutes.
+Get up and running with the Yamcs MCP Server in minutes.
 
 ## Prerequisites
 
-- Yamcs MCP Server installed ([Installation Guide](installation.md))
-- A running Yamcs instance
-- Basic familiarity with Yamcs concepts
+- Python 3.11 or higher
+- A running Yamcs instance (or use Docker)
+- An AI assistant that supports MCP (like Claude Desktop)
 
-## Basic Setup
+## Step 1: Install the Server
 
-### 1. Configure Environment
+### Using pip
+```bash
+pip install yamcs-mcp-server
+```
 
-Set up your environment variables:
+### Using uv (recommended)
+```bash
+uv pip install yamcs-mcp-server
+```
+
+## Step 2: Start Yamcs (if needed)
+
+If you don't have Yamcs running, use Docker for a quick setup:
+
+```bash
+docker run -d --name yamcs \
+  -p 8090:8090 \
+  yamcs/example-simulation
+```
+
+This starts Yamcs with a `simulator` instance that includes example telemetry.
+
+## Step 3: Configure the MCP Server
+
+Set environment variables to connect to Yamcs:
 
 ```bash
 export YAMCS_URL="http://localhost:8090"
 export YAMCS_INSTANCE="simulator"
 ```
 
-### 2. Start the Server
+## Step 4: Connect to an AI Assistant
 
-Run the MCP server:
+### With Claude Desktop
+
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "yamcs": {
+      "command": "python",
+      "args": ["-m", "yamcs_mcp.server"],
+      "env": {
+        "YAMCS_URL": "http://localhost:8090",
+        "YAMCS_INSTANCE": "simulator"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop to load the configuration.
+
+### Manual Testing
+
+Run the server directly to see it working:
 
 ```bash
-python -m yamcs_mcp
+python -m yamcs_mcp.server
 ```
 
-You should see output like:
-
+You should see:
 ```
-2024-01-15 10:00:00 [INFO] Starting Yamcs MCP Server v0.1.0
-2024-01-15 10:00:01 [INFO] Connected to Yamcs at http://localhost:8090
-2024-01-15 10:00:01 [INFO] MCP server running on stdio transport
-```
-
-### 3. Test Basic Operations
-
-In another terminal, you can interact with the server using an MCP client:
-
-```python
-# List available tools
-client.list_tools()
-
-# Get server health
-result = await client.call_tool("health_check")
-print(result)
-# Output: {"status": "healthy", "yamcs_url": "http://localhost:8090", ...}
-
-# List parameters from MDB
-result = await client.call_tool("mdb_list_parameters", {
-    "namespace": "/YSS/SIMULATOR"
-})
+Starting Yamcs MCP Server v0.2.3
+Connected to Yamcs at http://localhost:8090
+MCP server running on stdio transport
 ```
 
-## Common Use Cases
+## Step 5: Try It Out!
 
-### Querying Parameters
+Once connected to your AI assistant, try these prompts:
 
-```python
-# Get parameter details
-param_info = await client.call_tool("mdb_get_parameter", {
-    "parameter": "/YSS/SIMULATOR/BatteryVoltage"
-})
+### Basic Health Check
+> "Check if the MCP server is healthy and connected to Yamcs"
 
-# Get current value
-current_value = await client.call_tool("processors_get_parameter_value", {
-    "parameter": "/YSS/SIMULATOR/BatteryVoltage"
-})
-```
+The AI will use the `health_check` tool to verify connectivity.
 
-### Command Execution
+### View System Status
+> "Show me all running instances and their processors"
 
-```python
-# Issue a command
-result = await client.call_tool("processors_issue_command", {
-    "command": "/YSS/SIMULATOR/SWITCH_BATTERY_ON",
-    "dry_run": True  # Validate without executing
-})
-```
+The AI will use `instances/list_instances` and show you the system state.
+
+### Monitor Telemetry
+> "List all battery-related parameters"
+
+The AI will use `mdb/list_parameters` to find relevant telemetry.
+
+### Check Data Links
+> "Show me the status of all data links"
+
+The AI will use `links/list_links` to display link health.
+
+### View Alarms
+> "Are there any active alarms?"
+
+The AI will use `alarms/list_alarms` to check for issues.
+
+## Common Operations
+
+### Pre-Pass Checklist
+> "Run a pre-pass checklist: verify all links are enabled, check for alarms, and confirm the realtime processor is running"
+
+### Parameter Investigation
+> "Show me details about the BatteryVoltage parameter including its alarm limits"
 
 ### Link Management
+> "If any telemetry links are disabled, enable them"
 
-```python
-# List all links
-links = await client.call_tool("link_list_links")
+### Alarm Handling
+> "List any unacknowledged alarms and their severity"
 
-# Enable a link
-await client.call_tool("link_enable_link", {
-    "link": "TM_REALTIME"
-})
+## Understanding the Output
+
+When you interact with the MCP server through an AI assistant:
+
+1. **You ask** in natural language
+2. **The AI determines** which tools to use
+3. **Tools execute** against Yamcs
+4. **The AI formats** the response for clarity
+
+For example:
 ```
+You: "Is the simulator instance healthy?"
 
-## Using with AI Assistants
-
-The MCP server is designed to work with AI assistants that support the Model Context Protocol:
-
-1. Configure your AI assistant to connect to the MCP server
-2. The assistant will have access to all Yamcs tools
-3. You can ask natural language questions like:
-   - "What's the current battery voltage?"
-   - "Show me temperature data from yesterday"
-   - "Enable the telemetry downlink"
-
-## Configuration Options
-
-See the [Configuration Guide](configuration.md) for detailed options:
-
-- Authentication setup
-- Component selection
-- Transport options (stdio, HTTP)
-- Logging configuration
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Check Yamcs connectivity:
-   ```bash
-   python -m yamcs_mcp test-connection
-   ```
-
-2. Enable debug logging:
-   ```bash
-   export LOG_LEVEL=DEBUG
-   python -m yamcs_mcp
-   ```
-
-3. See the [Troubleshooting Guide](troubleshooting.md) for common issues
+AI: The simulator instance is healthy and running. Here's the status:
+- State: RUNNING
+- Mission Time: 2024-01-15T12:34:56Z
+- Active Processors: 1 (realtime)
+- Connected Clients: 3
+- Available capabilities: MDB, commanding, alarms, archiving
+```
 
 ## Next Steps
 
-- Explore [Architecture](architecture.md) to understand how servers work
-- Read about specific [Servers](servers/mdb.md)
-- Check out more [Examples](examples.md)
-- Learn about [Development](development.md) if you want to contribute
+### Learn More About MCP
+Read [Understanding MCP](mcp-concepts.md) to learn how tools and resources work.
+
+### Explore Available Tools
+Browse the [Tools Reference](tools-overview.md) to see all available operations.
+
+### Try Sample Prompts
+Check out [Sample Prompts](sample-prompts.md) for mission control scenarios.
+
+### Configure Advanced Features
+See [Configuration](configuration.md) for authentication, components, and transport options.
+
+## Troubleshooting
+
+### Server Won't Start
+- Verify Yamcs is running: `curl http://localhost:8090/api`
+- Check environment variables are set
+- Review logs for connection errors
+
+### Tools Not Available
+- Ensure the MCP server is in Claude Desktop's configuration
+- Restart Claude Desktop after configuration changes
+- Check that required components are enabled
+
+### No Data Returned
+- Verify the Yamcs instance name is correct
+- Check that Yamcs has data (parameters, alarms, etc.)
+- Ensure you have proper permissions
+
+See the [Troubleshooting Guide](troubleshooting.md) for more help.
